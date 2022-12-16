@@ -2,7 +2,7 @@
 Hier is my second attempt at making a programming language (previous was GoldByte, but it had bad architecture, so it was easier to start from the  beginning). This time I decided to do actual research (Thanks for Crafting Interpreters). It runs code by interpreting AST so it is not very fast, but it currently works and writing a bytecode VM is a possibility. There are a issues with it and it is not perfect, but with time it will improve.
 
 # Usage
-Hier is written in Rust, so you will need to inatall its toolchain, if you don't have it. Go to www.rust-lang.org/learn/get-started for help.
+Hier is written in Rust, so you will need to install its toolchain, if you don't have it. Go to www.rust-lang.org/learn/get-started for help.
 Clone this repo to your machine:
 ```
 git clone https://github.com/wiktorwojcik112/hier.git
@@ -28,22 +28,22 @@ To run a file, enter:
 # Design
 Hier uses a Lisp-like syntax of putting everything in brackets - ( and ). Hier contains only 5 constructs: lists (using ( and ) ), blocks (using { and }), numbers (number with optional ., for example: 1.0, 2.5, -1.5, 5, -3), strings (using " and ", they can contain all characters except ", because there is no interpolation and they can be multiline (new lines are included in string)), subscripts (expression with [ ]), properties (expression with . and its property (including functions)), identifiers (any characters, except it can't begin with " and must not contain spaces, :, (, ), ., new lines, [ and ]) and directives (which begin with #).
 
-The language is functional (no classes) and everything in it (except directives) is some kind of expression. Here is an example of a program which adds numbers 1 2 3 and result of subtracting 2 from 1 and prints it:
+The language is functional (no classes) and everything in it (except directives) is some kind an expression. Here is an example of a program which adds numbers 1 2 3 and result of subtracting 2 from 1 and prints it:
 
 ```
 #main
 (print (+ 1 2 3 (- 1 2)))
 ```
 
-Currently, variables outside of a block can't be modified.
+Currently, variables outside a block can't be modified.
 
-Almost all of Hier is value-based. That means that you often would work on copies of values. For example, by using insert, remove or replace functions on an array, you don't change the original array, but create a new array with specified changes.
+Almost all of Hier is value-based. That means that operation creates a copy of a value. For example, by using insert, remove or replace functions on an array, you don't change the original array, but create a new array with specified changes.
 
 
 # Directives
 Directives begin with #. There are 2 types of directives - module name and include. 
 - Module name is provided using #some_module_name syntax. Module name is the name of current file (by default, its filename). It is used to distinguish between modules in inclusion.
-- Include is provided using #<some_path.hier> syntax. The path can be relative to current directory. When used, Hier will literally include tokens from the provided file in the current file at the tokenization stage. If file was already included, it is omitted. It is determined based on module name of the file. This is a entry way for Hier to support multiple files, which may change in the future.
+- Include is provided using #<some_path.hier> syntax. The path can be relative to current directory. When used, Hier will literally include tokens from the provided file in the current file at the tokenization stage. If file was already included, it is omitted. It is determined based on module name of the file. This is an initial way for Hier to support multiple files, which may change in the future.
 
 # Lists
 Lists are fundamental element of Hier. They are made of expressions between ( and ). The list may be a function call depending on circumstances. If first expression is an identifier, it will work like a function call, for example (print 1 2 3). If first expression is a property it will work like a syntactic sugar for function call on object, for example, it will convert (array.insert 1) to (insert array 1), allowing clearer syntax. If first expression evaluates to function arguments (for example: (| a b c)), list will evaluate to an anonymous function. Otherwise, it will generate an array (in Hier, arrays are collective name for lists and arrays). Lists (arrays) can also be created using (& value1 value2) function call or (list value1 value2) function call.
