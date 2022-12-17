@@ -5,7 +5,7 @@ use std::{fs, io};
 use std::io::Write;
 use std::process::exit;
 use crate::Hier;
-use crate::interpreter::{error, warning};
+use crate::interpreter::warning;
 use std::time::{SystemTime, UNIX_EPOCH};
 use rand::Rng;
 use crate::value::Value;
@@ -27,7 +27,7 @@ impl Environment {
             is_number = false;
             result_string = string;
         } else {
-            error(&format!("Argument must be a number or string in addition. Found {}.", first.text_representation()));
+            self.error(&format!("Argument must be a number or string in addition. Found {}.", first.text_representation()));
         }
 
         for argument in arguments {
@@ -35,16 +35,16 @@ impl Environment {
                 if is_number {
                     result_number += number;
                 } else {
-                    error(&format!("Argument must be a string, but {} of type {} was found.", argument.text_representation(), argument.get_type().text_representation()))
+                    self.error(&format!("Argument must be a string, but {} of type {} was found.", argument.text_representation(), argument.get_type().text_representation()))
                 }
             } else if let Value::STRING(string) = argument.clone() {
                 if !is_number {
                     result_string += &string;
                 } else {
-                    error(&format!("Argument must be a number, but {} of type {} was found.", argument.text_representation(), argument.get_type().text_representation()))
+                    self.error(&format!("Argument must be a number, but {} of type {} was found.", argument.text_representation(), argument.get_type().text_representation()))
                 }
             } else {
-                error(&format!("Argument must be a number or string in addition. Found {}.", argument.text_representation()));
+                self.error(&format!("Argument must be a number or string in addition. Found {}.", argument.text_representation()));
             }
         }
 
@@ -56,14 +56,14 @@ impl Environment {
         let mut result = if let Value::NUMBER(number) = arguments.remove(0) {
             number
         } else {
-            error("Argument must be a number in subtraction.")
+            self.error("Argument must be a number in subtraction.")
         };
 
         for argument in arguments {
             if let Value::NUMBER(number) = argument {
                 result -= number;
             } else {
-                error(&format!("Argument must be a number in subtraction. Found {}.", argument.text_representation()));
+                self.error(&format!("Argument must be a number in subtraction. Found {}.", argument.text_representation()));
             }
         }
 
@@ -75,14 +75,14 @@ impl Environment {
         let mut result = if let Value::NUMBER(number) = arguments.remove(0) {
             number
         } else {
-            error("Argument must be a number in multiplication.")
+            self.error("Argument must be a number in multiplication.")
         };
 
         for argument in arguments {
             if let Value::NUMBER(number) = argument {
                 result *= number;
             } else {
-                error(&format!("Argument must be a number in multiplication. Found {}.", argument.text_representation()));
+                self.error(&format!("Argument must be a number in multiplication. Found {}.", argument.text_representation()));
             }
         }
 
@@ -94,18 +94,18 @@ impl Environment {
         let mut result = if let Value::NUMBER(number) = arguments.remove(0) {
             number
         } else {
-            error("Argument must be a number in division.")
+            self.error("Argument must be a number in division.")
         };
 
         for argument in arguments {
             if let Value::NUMBER(number) = argument {
                 if number == 0.0 {
-                    error("Dividing by 0 is forbidden.");
+                    self.error("Dividing by 0 is forbidden.");
                 }
 
                 result /= number;
             } else {
-                error(&format!("Argument must be a number in division. Found {}.", argument.text_representation()));
+                self.error(&format!("Argument must be a number in division. Found {}.", argument.text_representation()));
             }
         }
 
@@ -115,7 +115,7 @@ impl Environment {
     pub fn call_binary(&mut self, operation: &String, arguments: Vec<Value>) -> Value {
         // Make it support many arguments.
         if arguments.len() != 2 {
-            error("Binary operations require only 2 operands");
+            self.error("Binary operations require only 2 operands");
         }
 
         match &operation as &str {
@@ -123,10 +123,10 @@ impl Environment {
                 if let Value::NUMBER(number2) = arguments[1].clone() {
                     Value::NUMBER(((number1 as i64) % (number2 as i64)) as f64)
                 } else {
-                    error("Modulo operation requires 2 number arguments.");
+                    self.error("Modulo operation requires 2 number arguments.");
                 }
             } else {
-                error("Modulo operation requires 2 number arguments.");
+                self.error("Modulo operation requires 2 number arguments.");
             },
             "??" => if arguments[0] != Value::NULL { arguments[0].clone() } else { arguments[1].clone() },
             "==" => Value::BOOL(arguments[0] == arguments[1]),
@@ -134,7 +134,7 @@ impl Environment {
                 if let Value::TYPE(a_type) = arguments[1].clone() {
                     Value::BOOL(arguments[0].get_type() == a_type)
                 } else {
-                    error("Is operation requires second argument to be value type.")
+                    self.error("Is operation requires second argument to be value type.")
                 }
             },
             "!=" => Value::BOOL(arguments[0] != arguments[1]),
@@ -143,10 +143,10 @@ impl Environment {
                     if let Value::NUMBER(number1) = arguments[1] {
                         Value::BOOL(number0 < number1)
                     } else {
-                        error("< comparison operands must be numbers.")
+                        self.error("< comparison operands must be numbers.")
                     }
                 } else {
-                    error("< comparison operands must be numbers.")
+                    self.error("< comparison operands must be numbers.")
                 }
             },
             ">" => {
@@ -154,10 +154,10 @@ impl Environment {
                     if let Value::NUMBER(number1) = arguments[1] {
                         Value::BOOL(number0 > number1)
                     } else {
-                        error("> comparison operands must be numbers.")
+                        self.error("> comparison operands must be numbers.")
                     }
                 } else {
-                    error("> comparison operands must be numbers.")
+                    self.error("> comparison operands must be numbers.")
                 }
             },
             "<=" => {
@@ -165,10 +165,10 @@ impl Environment {
                     if let Value::NUMBER(number1) = arguments[1] {
                         Value::BOOL(number0 <= number1)
                     } else {
-                        error("<= comparison operands must be numbers.")
+                        self.error("<= comparison operands must be numbers.")
                     }
                 } else {
-                    error("<= comparison operands must be numbers.")
+                    self.error("<= comparison operands must be numbers.")
                 }
             },
             ">=" => {
@@ -176,10 +176,10 @@ impl Environment {
                     if let Value::NUMBER(number1) = arguments[1] {
                         Value::BOOL(number0 >= number1)
                     } else {
-                        error(">= comparison operands must be numbers.")
+                        self.error(">= comparison operands must be numbers.")
                     }
                 } else {
-                    error(">= comparison operands must be numbers.")
+                    self.error(">= comparison operands must be numbers.")
                 }
             },
             _ => Value::NULL
@@ -203,7 +203,7 @@ impl Environment {
                     }
                 };
             } else {
-                error("Operands of logical operations must be booleans or boolean expressions.")
+                self.error("Operands of logical operations must be booleans or boolean expressions.")
             }
         }
 
@@ -216,13 +216,13 @@ impl Environment {
 
     pub fn call_if(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 2 && arguments.len() != 3 {
-            error("If must have only 2 or 3 arguments: condition and block (optionally else block).");
+            self.error("If must have only 2 or 3 arguments: condition and block (optionally else block).");
         }
 
         let condition = if let Value::BOOL(condition) = arguments[0] {
             condition
         } else {
-            error("If's condition must evaluate to a boolean.");
+            self.error("If's condition must evaluate to a boolean.");
         };
 
         self.begin_scope();
@@ -249,32 +249,26 @@ impl Environment {
     }
 
     pub fn call_while(&mut self, arguments: Vec<Value>) -> Value {
-        if arguments.len() != 3 {
-            error("While must have 3 arguments: initialization block, condition block and execution block.");
+        if arguments.len() != 2 {
+            self.error("While must have 2 arguments: a condition block and an execution block.");
         }
 
         self.begin_scope();
 
-        if let Value::BLOCK(block) = arguments[0].clone() {
-            self.interpret_block(block);
-        } else {
-            error("While's first argument must be a block.");
+        if let Value::BLOCK(_) = arguments[0] { } else {
+            self.error("While's first argument must be a block.");
         }
 
-        if let Value::BLOCK(_) = arguments[1] { } else {
-            error("While's second argument must be a block.");
-        }
-
-        if let Value::BLOCK(block) = arguments[2].clone() {
+        if let Value::BLOCK(block) = arguments[1].clone() {
             loop {
-                let condition = if let Value::BLOCK(condition_block) = arguments[1].clone() {
+                let condition = if let Value::BLOCK(condition_block) = arguments[0].clone() {
                     if let Value::BOOL(condition) = self.interpret_block(condition_block) {
                         condition
                     } else {
-                        error("While's condition must return a boolean (boolean must be the last expression's result).");
+                        self.error("While's condition must return a boolean (boolean must be the last expression's result).");
                     }
                 } else {
-                    error("While's condition must be a condition block returning a boolean (boolean must be the last expression's result).");
+                    self.error("While's condition must be a condition block returning a boolean (boolean must be the last expression's result).");
                 };
 
                 if !condition {
@@ -300,7 +294,7 @@ impl Environment {
 
     pub fn call_try(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 2 {
-            error("Try must have 2 arguments: a value and execution block.");
+            self.error("Try must have 2 arguments: a value and execution block.");
         }
 
         self.begin_scope();
@@ -312,7 +306,7 @@ impl Environment {
                 self.end_scope();
                 value
             } else {
-                error("Try's second argument must be a block.");
+                self.error("Try's second argument must be a block.");
             }
         } else {
             arguments[0].clone()
@@ -325,7 +319,7 @@ impl Environment {
 
     pub fn call_for(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 2 {
-            error("For must have 2 arguments: a list or a string and execution block.");
+            self.error("For must have 2 arguments: a list or a string and execution block.");
         }
 
         self.begin_scope();
@@ -345,7 +339,7 @@ impl Environment {
                     self.end_scope();
                 }
             } else {
-                error("For's second argument must be a block.");
+                self.error("For's second argument must be a block.");
             }
         } else if let Value::STRING(string) = arguments[0].clone() {
             if let Value::BLOCK(block) = arguments[1].clone() {
@@ -362,7 +356,7 @@ impl Environment {
                     self.end_scope();
                 }
             } else {
-                error("For's second argument must be a block.");
+                self.error("For's second argument must be a block.");
             }
         } else if let Value::TABLE(table) = arguments[0].clone() {
             if let Value::BLOCK(block) = arguments[1].clone() {
@@ -379,10 +373,10 @@ impl Environment {
                     self.end_scope();
                 }
             } else {
-                error("For's second argument must be a block.");
+                self.error("For's second argument must be a block.");
             }
         } else {
-            error("For's first argument must be a list.");
+            self.error("For's first argument must be a list.");
         };
 
         self.end_scope();
@@ -392,7 +386,7 @@ impl Environment {
 
     pub fn call_repeat(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 2 && arguments.len() != 1 {
-            error("Repeat must have only 2 arguments: a number (optional) and execution block.");
+            self.error("Repeat must have only 2 arguments: a number (optional) and execution block.");
         }
 
          self.begin_scope();
@@ -400,11 +394,11 @@ impl Environment {
         if arguments.len() == 2 {
             let repetitions = if let Value::NUMBER(number) = arguments[0].clone() {
                 if number < 1f64 {
-                    error("Repeat's first argument must be a number greater than 0.");
+                    self.error("Repeat's first argument must be a number greater than 0.");
                 }
                 number as i64
             } else {
-                error("Repeat's first argument must be a number.");
+                self.error("Repeat's first argument must be a number.");
             };
 
             if let Value::BLOCK(block) = arguments[1].clone() {
@@ -488,13 +482,13 @@ impl Environment {
                         Err(error) => { warning(&format!("Failed to write to file: {}", error)); Value::NULL }
                     }
                 } else {
-                    error("Write operation requires second argument to be a string to write.");
+                    self.error("Write operation requires second argument to be a string to write.");
                 }
             } else {
-                error("Write operation requires first argument to be a string path to file.");
+                self.error("Write operation requires first argument to be a string path to file.");
             }
         } else {
-            error("Write operation requires 2 arguments: path string and contents string.");
+            self.error("Write operation requires 2 arguments: path string and contents string.");
         }
     }
 
@@ -502,7 +496,7 @@ impl Environment {
         if arguments.len() == 0 {
             let mut line = String::new();
             if let Err(error_message) = io::stdin().read_line(&mut line) {
-                error(&format!("Failed to read line: {}.", error_message));
+                self.error(&format!("Failed to read line: {}.", error_message));
             };
             if 1 < line.len() {
                 line.remove(line.len() - 1);
@@ -518,28 +512,28 @@ impl Environment {
                     Err(error) => Value::ERROR(error.to_string())
                 }
             } else {
-                error("Read operation requires first argument to be a string path to file.");
+                self.error("Read operation requires first argument to be a string path to file.");
             }
         } else {
-            error("Read operation requires 0 or 1 arguments (a path).");
+            self.error("Read operation requires 0 or 1 arguments (a path).");
         }
     }
 
     pub fn call_negate(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 1 {
-            error("Negation requires 1 boolean argument.");
+            self.error("Negation requires 1 boolean argument.");
         }
 
         if let Value::BOOL(boolean) = arguments[0] {
             Value::BOOL(!boolean)
         } else {
-            error("Negation requires 1 boolean argument.");
+            self.error("Negation requires 1 boolean argument.");
         }
     }
 
     pub fn call_number(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 1 {
-            error("Number conversion requires 1 argument.");
+            self.error("Number conversion requires 1 argument.");
         }
 
         if let Value::STRING(string) = arguments[0].clone() {
@@ -571,7 +565,7 @@ impl Environment {
             if let Value::KEY_VALUE(key, value) = argument {
                 table.insert(key, *value);
             } else {
-                error(&format!("Table operation's all arguments must be key-values, but {} was found.", argument.text_representation()));
+                self.error(&format!("Table operation's all arguments must be key-values, but {} was found.", argument.text_representation()));
             }
         }
 
@@ -580,7 +574,7 @@ impl Environment {
 
     pub fn call_string(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 1 {
-            error("String conversion requires 1 argument.");
+            self.error("String conversion requires 1 argument.");
         }
 
         Value::STRING(arguments[0].text_representation())
@@ -588,7 +582,7 @@ impl Environment {
 
     pub fn call_length(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 1 {
-            error("Length operation requires 1 argument that is an array (list or string).");
+            self.error("Length operation requires 1 argument that is an array (list or string).");
         }
 
         if let Value::LIST(list) = arguments[0].clone() {
@@ -596,7 +590,7 @@ impl Environment {
         } else if let Value::STRING(string) = arguments[0].clone() {
             Value::NUMBER(string.len() as f64)
         } else {
-            error("Length operation requires 1 argument that is an array (list or string).");
+            self.error("Length operation requires 1 argument that is an array (list or string).");
         }
     }
 
@@ -611,7 +605,7 @@ impl Environment {
                 string.remove(string.len() - 1);
                 Value::STRING(string)
             } else {
-                error("Remove operation requires first argument to be an array (list or string).");
+                self.error("Remove operation requires first argument to be an array (list or string).");
             }
         } else if arguments.len() == 2 {
             if let Value::NUMBER(index) = arguments[1].clone() {
@@ -626,19 +620,19 @@ impl Environment {
                     string.remove(index);
                     Value::STRING(string)
                 } else {
-                    error("Remove operation requires first argument to be an array (list or string).");
+                    self.error("Remove operation requires first argument to be an array (list or string).");
                 }
             } else {
-                error("Remove operation requires second argument to be a number.");
+                self.error("Remove operation requires second argument to be a number.");
             }
         } else {
-            error("Remove operation requires 1 or 2 arguments: an array (list or string) and index (optional, if none, operate on last element).");
+            self.error("Remove operation requires 1 or 2 arguments: an array (list or string) and index (optional, if none, operate on last element).");
         }
     }
 
     pub fn call_replace(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 3 {
-            error("Replace operation requires 3 arguments: an array (list or string), index and value.");
+            self.error("Replace operation requires 3 arguments: an array (list or string), index and value.");
         }
         if let Value::NUMBER(index) = arguments[1].clone() {
             let index = index as usize;
@@ -653,13 +647,13 @@ impl Environment {
                     string.replace_range(index..(index + 1), &new);
                     Value::STRING(string)
                 } else {
-                    error("Replace operation requires third argument to be an string if array is a string.");
+                    self.error("Replace operation requires third argument to be an string if array is a string.");
                 }
             } else {
-                error("Replace operation requires first argument to be an array (list or string).");
+                self.error("Replace operation requires first argument to be an array (list or string).");
             }
         } else {
-            error("Replace operation requires second argument to be a number.");
+            self.error("Replace operation requires second argument to be a number.");
         }
     }
 
@@ -675,10 +669,10 @@ impl Environment {
                     string.push_str(&appended);
                     Value::STRING(string)
                 } else {
-                    error("Insert operation requires second argument to be a string when array is a string.");
+                    self.error("Insert operation requires second argument to be a string when array is a string.");
                 }
             } else {
-                error("Insert operation requires first argument to be an array (list or string).");
+                self.error("Insert operation requires first argument to be an array (list or string).");
             }
         } else if arguments.len() == 3 {
             if let Value::NUMBER(index) = arguments[2].clone() {
@@ -694,33 +688,33 @@ impl Environment {
                         string.insert_str(index, &appended);
                         Value::STRING(string)
                     } else {
-                        error("Insert operation requires second argument to be a string when array is a string.");
+                        self.error("Insert operation requires second argument to be a string when array is a string.");
                     }
                 } else {
-                    error("Insert operation requires first argument to be an array (list or string).");
+                    self.error("Insert operation requires first argument to be an array (list or string).");
                 }
             } else {
-                error("Insert operation requires third argument to be a number.");
+                self.error("Insert operation requires third argument to be a number.");
             }
         } else {
-            error("Insert operation requires 2 or 3 arguments: an array (list or string), value and index (optional, if none, operate on last element).");
+            self.error("Insert operation requires 2 or 3 arguments: an array (list or string), value and index (optional, if none, operate on last element).");
         }
     }
 
     pub fn call_time(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 0 {
-            error("Time operation requires 0 arguments.");
+            self.error("Time operation requires 0 arguments.");
         }
 
         match SystemTime::now().duration_since(UNIX_EPOCH) {
             Ok(n) => Value::NUMBER(n.as_secs() as f64),
-            Err(_) => error("System time is before Unix epoch."),
+            Err(_) => self.error("System time is before Unix epoch."),
         }
     }
 
     pub fn call_break(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 0 {
-            error("Break operation requires 0 arguments.");
+            self.error("Break operation requires 0 arguments.");
         }
 
         Value::ERROR("LoopExit".to_string())
@@ -728,19 +722,19 @@ impl Environment {
 
     pub fn call_round(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 1 {
-            error("Round operation requires 1 number argument.");
+            self.error("Round operation requires 1 number argument.");
         }
 
         if let Value::NUMBER(number) = arguments[0] {
             Value::NUMBER(number as i64 as f64)
         } else {
-            error("Round operation requires a number argument.");
+            self.error("Round operation requires a number argument.");
         }
     }
 
     pub fn call_error(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 1 {
-            error("Error operation requires 1 argument.");
+            self.error("Error operation requires 1 argument.");
         }
 
         Value::ERROR(arguments[0].clone().text_representation())
@@ -748,7 +742,7 @@ impl Environment {
 
     pub fn call_panic(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 1 {
-            error("Panic operation requires 1 argument.");
+            self.error("Panic operation requires 1 argument.");
         }
 
         eprintln!("! Panic: {}", arguments[0].clone().text_representation());
@@ -757,20 +751,20 @@ impl Environment {
 
     pub fn call_eval(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 1 {
-            error("Evaluate operation requires 1 string argument.");
+            self.error("Evaluate operation requires 1 string argument.");
         }
 
         if let Value::STRING(code) = arguments[0].clone() {
             let mut hier = Hier::new();
             hier.run(code)
         } else {
-            error("Evaluate operation requires a string argument.");
+            self.error("Evaluate operation requires a string argument.");
         }
     }
 
     pub fn call_cmd(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 1 {
-            error("Cmd operation requires at least 1 string argument.");
+            self.error("Cmd operation requires at least 1 string argument.");
         }
 
         let mut args: Vec<String> = arguments.iter().map(|value| value.clone().text_representation()).collect();
@@ -796,35 +790,35 @@ impl Environment {
 
             Value::STRING(string_output)
         } else {
-            error("Cmd operation requires a string argument.");
+            self.error("Cmd operation requires a string argument.");
         }
     }
 
     pub fn call_random(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 2 {
-            error("Random operation requires 2 number arguments. First smaller than second.");
+            self.error("Random operation requires 2 number arguments. First smaller than second.");
         }
 
         if let Value::NUMBER(first) = arguments[0] {
             if let Value::NUMBER(second) = arguments[1] {
                 if first >= second {
-                    error("Random operation's first argument must be smaller than second.");
+                    self.error("Random operation's first argument must be smaller than second.");
                 }
 
                 let mut rng = rand::thread_rng();
 
                 Value::NUMBER(rng.gen_range(first, second) as f64)
             } else {
-                error("Random operation's second argument must be a number.");
+                self.error("Random operation's second argument must be a number.");
             }
         } else {
-            error("Random operation's first argument must be a number.");
+            self.error("Random operation's first argument must be a number.");
         }
     }
 
     pub fn call_get(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 2 && arguments.len() != 1 {
-            error("Get operation requires max 2 arguments: object and key (number or string, optional).");
+            self.error("Get operation requires max 2 arguments: object and key (number or string, optional).");
         }
 
         if arguments.len() == 1 {
@@ -855,21 +849,21 @@ impl Environment {
             match arguments[0].clone() {
                 Value::LIST(value) => {
                     if index < 0f64 || value.len() <= index as usize {
-                        error(&format!("Index {} is out of bounds ({} elements).", index, value.len()));
+                        self.error(&format!("Index {} is out of bounds ({} elements).", index, value.len()));
                     }
 
                     value[index as usize].clone()
                 },
                 Value::STRING(value) => {
                     if index < 0f64 || value.len() <= index as usize {
-                        error(&format!("Index {} is out of bounds ({} elements).", index, value.len()));
+                        self.error(&format!("Index {} is out of bounds ({} elements).", index, value.len()));
                     }
                     Value::STRING(value.chars().nth(index as usize).clone().unwrap_or(' ').to_string())
                 },
                 _ => if index == 0f64 { arguments[0].clone() } else { Value::NULL },
             }
         } else {
-            error("Get operation requires second arguments to be a number or string.");
+            self.error("Get operation requires second arguments to be a number or string.");
         }
     }
 }

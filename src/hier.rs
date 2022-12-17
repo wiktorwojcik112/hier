@@ -1,7 +1,8 @@
-use std::{fs, io};
+use std::{fs, io, panic, thread};
 use std::io::Write;
 use std::process::exit;
 use crate::{Environment, Parser, Tokenizer};
+use crate::expression::Expression;
 use crate::value::Value;
 
 pub struct Hier { }
@@ -31,7 +32,7 @@ impl Hier {
 
         let mut environment = Environment::new_with_code(parser.code, false);
 
-        environment.file_interpret();
+        environment.interpret();
     }
 
     pub fn run(&mut self, code: String) -> Value {
@@ -50,11 +51,11 @@ impl Hier {
         }
 
         let mut environment = Environment::new_with_code(parser.code, false);
-        environment.direct_interpret()
+        environment.interpret()
     }
 
     pub fn repl(&mut self) -> ! {
-        let mut environment = Environment::new(true);
+        let mut repl_environment = Environment::new(true);
 
         loop {
             print!("> ");
@@ -85,7 +86,33 @@ impl Hier {
                 eprintln!("Failed.");
                 continue;
             }
-            println!("{}", environment.interpret(parser.code).text_representation());
+
+            let code = if let Expression::BLOCK(code) = parser.code {
+                code
+            } else {
+                vec![parser.code]
+            };
+
+            let environment = repl_environment.clone();
+
+            let value = thread::spawn(move || {
+                let mut environment = environment.clone();
+                let value = environment.interpret_block(code);
+                (value, environment.values)
+            });
+
+            let current_hook = panic::take_hook();
+
+            panic::set_hook(Box::new(|_info| {
+                // Do nothing.
+            }));
+
+            match value.join() {
+                Ok((value, values)) => { println!("{}", value.text_representation()); repl_environment.values = values },
+                _ => { }
+            }
+
+            panic::set_hook(current_hook);
         }
     }
 }

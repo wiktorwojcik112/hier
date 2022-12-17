@@ -9,10 +9,10 @@ At every prompt enter number from 1 to 9 to select a square.
 (@show_plane (| plane) {
     (println "----" "----" "----")
     (print "|")
-    { (@i 0)
+    (@i 0)
     (while { (!= i 9) } {
         (print " " plane[i] " " "|")
-        (@i (+ i 1))
+        (=i (+ i 1))
         (if (== (% i 3) 0) {
             (println "")
             (println "----" "----" "----")
@@ -25,7 +25,8 @@ At every prompt enter number from 1 to 9 to select a square.
 
 (@plane (& "0" "1" "2" "3" "4" "5" "6" "7" "8"))
 (show_plane plane)
-(@plane plane) (@player false)
+(@plane plane)
+(@player false)
 (repeat {
     (@plane (if player {
         (print "X: ")
@@ -53,5 +54,5 @@ At every prompt enter number from 1 to 9 to select a square.
         (println (if player { "X" } { "O" }) " won!")
         (break)
     })
-    (@player (! player))
+    (=player (! player))
 })

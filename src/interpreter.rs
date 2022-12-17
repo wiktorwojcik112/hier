@@ -1,37 +1,14 @@
-use std::process::exit;
 use crate::environment::Environment;
 use crate::expression::Expression;
 use crate::types::Type;
 use crate::value::Value;
-
-// Make it work with REPL
-pub fn error(error: &str) -> ! {
-    eprintln!("!: {}", error);
-    exit(1);
-}
 
 pub fn warning(error: &str) {
     eprintln!("?: {}", error);
 }
 
 impl Environment {
-    pub fn direct_interpret(&mut self) -> Value {
-        if let Expression::BLOCK(block) = self.code.clone() {
-            self.interpret_block(block)
-        } else {
-            self.visit(self.code.clone())
-        }
-    }
-
-    pub fn interpret(&mut self, code: Expression) -> Value {
-        if let Expression::BLOCK(block) = code.clone() {
-            self.interpret_block(block)
-        } else {
-            self.visit(code.clone())
-        }
-    }
-
-    pub fn file_interpret(&mut self) -> Value {
+    pub fn interpret(&mut self) -> Value {
         if let Expression::BLOCK(block) = self.code.clone() {
             self.interpret_block(block)
         } else {
@@ -93,7 +70,7 @@ impl Environment {
                             if let Expression::IDENTIFIER(argument) = expression {
                                 arguments.push(argument);
                             } else {
-                                error("Function arguments must be identifiers.");
+                                self.error("Function arguments must be identifiers.");
                             }
                         }
 
@@ -125,13 +102,13 @@ impl Environment {
                 } else {
                     if let Value::FUNCTION_ARGUMENTS(arguments) = self.visit(list[0].clone()) {
                         if list.len() != 2 {
-                            error("Anonymous function's must have 2 arguments: function arguments and a block");
+                            self.error("Anonymous function's must have 2 arguments: function arguments and a block");
                         }
 
                         if let Expression::BLOCK(block) = list[1].clone() {
                             return Value::FUNCTION(arguments, Box::new(Value::BLOCK(block)));
                         } else {
-                            error("Anonymous function's second argument must be a block.");
+                            self.error("Anonymous function's second argument must be a block.");
                         }
                     }
 

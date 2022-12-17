@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use std::env;
 use std::env::current_dir;
+use std::process::exit;
 use crate::expression::Expression;
-use crate::interpreter::{error, warning};
+use crate::interpreter::warning;
 use crate::value::Value;
 
 
@@ -11,6 +12,7 @@ type Scope = u64;
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub struct VariableId(Scope, String);
 
+#[derive(Clone)]
 pub struct Environment {
     pub scope: Scope,
     pub values: HashMap<VariableId, Value>,
@@ -29,6 +31,16 @@ impl Environment {
             values,
             code: Expression::LIST(vec![]),
             is_in_repl
+        }
+    }
+
+    pub fn error(&self, error: &str) -> ! {
+        eprintln!("!: {}", error);
+
+        if self.is_in_repl {
+            panic!("");
+        } else {
+            exit(1);
         }
     }
 
@@ -62,7 +74,7 @@ impl Environment {
 
     pub fn end_scope(&mut self) {
         if self.scope == 0 {
-            error("Ended scope that didn't exist.");
+            self.error("Ended scope that didn't exist.");
         } else {
             for (key, _) in self.values.clone() {
                 if key.0 == self.scope {
@@ -104,7 +116,7 @@ impl Environment {
             self.values.insert(VariableId(self.scope, key), value);
         } else {
             if let Some(_) = self.values.get(&VariableId(self.scope, key.clone())) {
-                error(&format!("Variable '{}' already exists in current scope.", key));
+                self.error(&format!("Variable '{}' already exists in current scope.", key));
             } else {
                 self.values.insert(VariableId(self.scope, key), value);
             }
@@ -117,7 +129,7 @@ impl Environment {
             self.values.insert(VariableId(self.scope, key.clone()), value);
         } else {
             if self.scope == 0 {
-                error(&format!("Variable {} doesn't exist.", key));
+                self.error(&format!("Variable {} doesn't exist.", key));
             } else {
                 self.assign_in_scope(key, value, self.scope - 1)
             }
@@ -129,7 +141,7 @@ impl Environment {
             self.values.insert(VariableId(scope, key.clone()), value);
         } else {
             if scope == 0 {
-                error(&format!("Variable {} doesn't exist.", key));
+                self.error(&format!("Variable {} doesn't exist.", key));
             } else {
                 self.assign_in_scope(key, value, scope - 1);
             }
@@ -139,7 +151,7 @@ impl Environment {
     fn call_user_defined_function(&mut self, name: &String, arguments: Vec<Value>) -> Value {
         if let Value::FUNCTION(parameters, block) = self.get(name.clone().to_string()) {
             if arguments.len() != parameters.len() {
-                error(&format!("Function {} expects {} arguments, but {} were provided.", name, parameters.len(), arguments.len()));
+                self.error(&format!("Function {} expects {} arguments, but {} were provided.", name, parameters.len(), arguments.len()));
             }
 
             {
@@ -203,7 +215,7 @@ impl Environment {
                 if name.chars().nth(0).unwrap_or(' ') == '@' {
                     // Process declaration
                     if name == "@" {
-                        error("Name can't be empty (can't be only @).")
+                        self.error("Name can't be empty (can't be only @).")
                     }
 
                     let mut name = name.clone();
@@ -218,21 +230,21 @@ impl Environment {
                                 self.declare(name, Value::FUNCTION(parameters.clone(), Box::new(Value::BLOCK(block.clone()))));
                                 Value::FUNCTION(parameters, Box::new(Value::BLOCK(block)))
                             } else {
-                                error("Function definition's second argument must be a block.");
+                                self.error("Function definition's second argument must be a block.");
                             }
                         } else {
-                            error("Function definition's first argument must be function arguments.");
+                            self.error("Function definition's first argument must be function arguments.");
                         }
                     } else if arguments.len() == 1 {
                         self.declare(name, arguments[0].clone());
                         arguments[0].clone()
                     } else {
-                        error("Variable set operation must have 1 or more arguments.");
+                        self.error("Variable set operation must have 1 or more arguments.");
                     }
                 } else if name.chars().nth(0).unwrap_or(' ') == '=' {
                     // Process assignment
                     if name == "=" {
-                        error("Name can't be empty (can't be only =).")
+                        self.error("Name can't be empty (can't be only =).")
                     }
 
                     let mut name = name.clone();
@@ -247,16 +259,16 @@ impl Environment {
                                 self.assign(name, Value::FUNCTION(parameters.clone(), Box::new(Value::BLOCK(block.clone()))));
                                 Value::FUNCTION(parameters, Box::new(Value::BLOCK(block)))
                             } else {
-                                error("Function definition's second argument must be a block.");
+                                self.error("Function definition's second argument must be a block.");
                             }
                         } else {
-                            error("Function definition's first argument must be function arguments.");
+                            self.error("Function definition's first argument must be function arguments.");
                         }
                     } else if arguments.len() == 1 {
                         self.assign(name, arguments[0].clone());
                         arguments[0].clone()
                     } else {
-                        error("Variable set operation must have 1 or more arguments.");
+                        self.error("Variable set operation must have 1 or more arguments.");
                     }
                 } else {
                     self.call_user_defined_function(name, arguments)
