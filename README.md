@@ -52,7 +52,6 @@ An example:
 (@array (1 2 3))
 (print array[0])
 (@function ((| a b c) { (print a) }))
-(@array)
 (print (array.length))
 ```
 # Table
