@@ -29,7 +29,7 @@ impl Hier {
             exit(1);
         }
 
-        let mut environment = Environment::new_with_code(parser.code);
+        let mut environment = Environment::new_with_code(parser.code, false);
 
         environment.file_interpret();
     }
@@ -49,12 +49,12 @@ impl Hier {
             exit(1);
         }
 
-        let mut environment = Environment::new_with_code(parser.code);
+        let mut environment = Environment::new_with_code(parser.code, false);
         environment.direct_interpret()
     }
 
     pub fn repl(&mut self) -> ! {
-        let mut environment = Environment::new();
+        let mut environment = Environment::new(true);
 
         loop {
             print!("> ");

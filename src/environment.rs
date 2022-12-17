@@ -78,7 +78,11 @@ impl Environment {
         if let Some(value) = self.values.get(&VariableId(self.scope, key.clone())) {
             value.clone()
         } else {
-            self.get_in_scope(key, self.scope - 1)
+            if self.scope == 0 {
+                Value::NULL
+            } else {
+                self.get_in_scope(key, self.scope - 1)
+            }
         }
     }
 
