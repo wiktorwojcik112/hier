@@ -14,11 +14,12 @@ pub struct VariableId(Scope, String);
 pub struct Environment {
     pub scope: Scope,
     pub values: HashMap<VariableId, Value>,
-    pub code: Expression
+    pub code: Expression,
+    is_in_repl: bool
 }
 
 impl Environment {
-    pub fn new() -> Self {
+    pub fn new(is_in_repl: bool) -> Self {
         let mut values: HashMap<VariableId, Value> = HashMap::new();
 
         Self::assign_default_variables(&mut values);
@@ -26,11 +27,12 @@ impl Environment {
         Self {
             scope: 0,
             values,
-            code: Expression::LIST(vec![])
+            code: Expression::LIST(vec![]),
+            is_in_repl
         }
     }
 
-    pub fn new_with_code(code: Expression) -> Self {
+    pub fn new_with_code(code: Expression, is_in_repl: bool) -> Self {
         let mut values: HashMap<VariableId, Value> = HashMap::new();
 
         Self::assign_default_variables(&mut values);
@@ -38,7 +40,8 @@ impl Environment {
         Self {
             scope: 0,
             values,
-            code
+            code,
+            is_in_repl
         }
     }
 
@@ -93,7 +96,15 @@ impl Environment {
 
     /// Declare a new variable in current scope and assign it some value
     pub fn declare(&mut self, key: String, value: Value) {
-        self.values.insert(VariableId(self.scope, key), value);
+        if self.is_in_repl {
+            self.values.insert(VariableId(self.scope, key), value);
+        } else {
+            if let Some(_) = self.values.get(&VariableId(self.scope, key.clone())) {
+                error(&format!("Variable '{}' already exists in current scope.", key));
+            } else {
+                self.values.insert(VariableId(self.scope, key), value);
+            }
+        }
     }
 
     /// Assign a value to a variable and error when it already exists
