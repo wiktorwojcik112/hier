@@ -14,24 +14,20 @@ pub fn warning(error: &str) {
     eprintln!("?: {}", error);
 }
 
-pub struct Interpreter<'a> {
-    code: Expression,
-    pub environment: &'a mut Environment
-}
-
-impl<'a> Interpreter<'a> {
-    pub fn new(code: Expression, environment: &'a mut Environment) -> Self {
-        Self {
-            code,
-            environment
-        }
-    }
-
+impl Environment {
     pub fn direct_interpret(&mut self) -> Value {
         if let Expression::BLOCK(block) = self.code.clone() {
             self.interpret_block(block)
         } else {
             self.visit(self.code.clone())
+        }
+    }
+
+    pub fn interpret(&mut self, code: Expression) -> Value {
+        if let Expression::BLOCK(block) = code.clone() {
+            self.interpret_block(block)
+        } else {
+            self.visit(code.clone())
         }
     }
 
@@ -75,7 +71,7 @@ impl<'a> Interpreter<'a> {
     pub fn visit_property(&mut self, property: Expression) -> Value {
         if let Expression::PROPERTY(expression, identifier) = property {
             let argument = self.visit(*(expression.clone()));
-            self.environment.call_function(&("get".to_string()), vec![argument, Value::STRING(identifier)])
+            self.call_function(&("get".to_string()), vec![argument, Value::STRING(identifier)])
         } else {
             Value::NULL
         }
@@ -112,7 +108,7 @@ impl<'a> Interpreter<'a> {
                             values.push(self.visit(expression));
                         }
 
-                        self.environment.call_function(&name, values)
+                        self.call_function(&name, values)
                     }
                 } else if let Expression::PROPERTY(expression, identifier) = &list[0] {
                     let mut expressions = list.clone();
@@ -125,7 +121,7 @@ impl<'a> Interpreter<'a> {
                         values.push(self.visit(expression));
                     }
 
-                    self.environment.call_function(identifier, values)
+                    self.call_function(identifier, values)
                 } else {
                     if let Value::FUNCTION_ARGUMENTS(arguments) = self.visit(list[0].clone()) {
                         if list.len() != 2 {
@@ -164,7 +160,7 @@ impl<'a> Interpreter<'a> {
                     if let Some(a_type) = Type::get_for_name(&value) {
                         Value::TYPE(a_type)
                     } else {
-                        self.environment.get(value)
+                        self.get(value)
                     }
                 }
             }

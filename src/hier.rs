@@ -1,7 +1,7 @@
 use std::{fs, io};
 use std::io::Write;
 use std::process::exit;
-use crate::{Environment, Interpreter, Parser, Tokenizer};
+use crate::{Environment, Parser, Tokenizer};
 use crate::value::Value;
 
 pub struct Hier { }
@@ -29,10 +29,9 @@ impl Hier {
             exit(1);
         }
 
-        let mut environment = Environment::new();
-        let mut interpreter = Interpreter::new(parser.code, &mut environment);
+        let mut environment = Environment::new_with_code(parser.code);
 
-        interpreter.file_interpret();
+        environment.file_interpret();
     }
 
     pub fn run(&mut self, code: String) -> Value {
@@ -50,10 +49,8 @@ impl Hier {
             exit(1);
         }
 
-        let mut environment = Environment::new();
-        let mut interpreter = Interpreter::new(parser.code, &mut environment);
-
-        interpreter.direct_interpret()
+        let mut environment = Environment::new_with_code(parser.code);
+        environment.direct_interpret()
     }
 
     pub fn repl(&mut self) -> ! {
@@ -88,10 +85,7 @@ impl Hier {
                 eprintln!("Failed.");
                 continue;
             }
-
-            let mut interpreter = Interpreter::new(parser.code, &mut environment);
-
-            println!("{}", interpreter.direct_interpret().text_representation());
+            println!("{}", environment.interpret(parser.code).text_representation());
         }
     }
 }

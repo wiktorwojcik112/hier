@@ -4,11 +4,10 @@ use std::collections::HashMap;
 use std::{fs, io};
 use std::io::Write;
 use std::process::exit;
-use crate::{Hier, Interpreter};
+use crate::Hier;
 use crate::interpreter::{error, warning};
 use std::time::{SystemTime, UNIX_EPOCH};
 use rand::Rng;
-use crate::expression::Expression;
 use crate::value::Value;
 
 impl Environment {
@@ -226,26 +225,25 @@ impl Environment {
             error("If's condition must evaluate to a boolean.");
         };
 
-        let mut environment = self.child();
-        let mut interpreter = Interpreter::new(Expression::NUMBER(0f64), &mut environment);
+        self.begin_scope();
 
         if condition {
             return if let Value::BLOCK(block) = arguments[1].clone() {
-                let value = interpreter.interpret_block(block);
-                self.restore(environment);
+                let value = self.interpret_block(block);
                 value
             } else {
                 arguments[1].clone()
             }
         } else if arguments.len() == 3 {
             return if let Value::BLOCK(block) = arguments[2].clone() {
-                let value = interpreter.interpret_block(block);
-                self.restore(environment);
+                let value = self.interpret_block(block);
                 value
             } else {
                 arguments[2].clone()
             }
         }
+
+        self.end_scope();
 
         Value::NULL
     }
@@ -255,11 +253,10 @@ impl Environment {
             error("While must have 3 arguments: initialization block, condition block and execution block.");
         }
 
-        let mut environment = self.child();
-        let mut interpreter = Interpreter::new(Expression::NUMBER(0f64), &mut environment);
+        self.begin_scope();
 
         if let Value::BLOCK(block) = arguments[0].clone() {
-            interpreter.interpret_block(block);
+            self.interpret_block(block);
         } else {
             error("While's first argument must be a block.");
         }
@@ -271,7 +268,7 @@ impl Environment {
         if let Value::BLOCK(block) = arguments[2].clone() {
             loop {
                 let condition = if let Value::BLOCK(condition_block) = arguments[1].clone() {
-                    if let Value::BOOL(condition) = interpreter.interpret_block(condition_block) {
+                    if let Value::BOOL(condition) = self.interpret_block(condition_block) {
                         condition
                     } else {
                         error("While's condition must return a boolean (boolean must be the last expression's result).");
@@ -284,15 +281,19 @@ impl Environment {
                     break;
                 }
 
-                if let Value::ERROR(error_message) = interpreter.interpret_block(block.clone()) {
+                self.begin_scope();
+                if let Value::ERROR(error_message) = self.interpret_block(block.clone()) {
                     if error_message == "LoopExit".to_string() {
+                        self.end_scope();
+                        self.end_scope();
                         break;
                     }
                 }
+                self.end_scope();
             }
         }
 
-        self.restore(environment);
+        self.end_scope();
 
         Value::NULL
     }
@@ -302,13 +303,14 @@ impl Environment {
             error("Try must have 2 arguments: a value and execution block.");
         }
 
-        let mut environment = self.child();
-        let mut interpreter = Interpreter::new(Expression::NUMBER(0f64), &mut environment);
+        self.begin_scope();
 
-        let result = if let Value::ERROR(error_messsage) = arguments[0].clone() {
+        let result = if let Value::ERROR(error_message) = arguments[0].clone() {
             if let Value::BLOCK(block) = arguments[1].clone() {
-                interpreter.environment.set("error".to_string(), Value::STRING(error_messsage));
-                interpreter.interpret_block(block.clone())
+                self.declare("error".to_string(), Value::STRING(error_message));
+                let value = self.interpret_block(block.clone());
+                self.end_scope();
+                value
             } else {
                 error("Try's second argument must be a block.");
             }
@@ -316,7 +318,7 @@ impl Environment {
             arguments[0].clone()
         };
 
-        self.restore(environment);
+        self.end_scope();
 
         result
     }
@@ -326,18 +328,21 @@ impl Environment {
             error("For must have 2 arguments: a list or a string and execution block.");
         }
 
-        let mut environment = self.child();
-        let mut interpreter = Interpreter::new(Expression::NUMBER(0f64), &mut environment);
+        self.begin_scope();
 
         if let Value::LIST(list) = arguments[0].clone() {
             if let Value::BLOCK(block) = arguments[1].clone() {
                 for element in list {
-                    interpreter.environment.set("element".to_string(), element);
-                    if let Value::ERROR(error_message) = interpreter.interpret_block(block.clone()) {
+                    self.begin_scope();
+                    self.declare("element".to_string(), element);
+                    if let Value::ERROR(error_message) = self.interpret_block(block.clone()) {
                         if error_message == "LoopExit".to_string() {
+                            self.end_scope();
+                            self.end_scope();
                             break;
                         }
                     }
+                    self.end_scope();
                 }
             } else {
                 error("For's second argument must be a block.");
@@ -345,12 +350,16 @@ impl Environment {
         } else if let Value::STRING(string) = arguments[0].clone() {
             if let Value::BLOCK(block) = arguments[1].clone() {
                 for element in string.chars() {
-                    interpreter.environment.set("element".to_string(), Value::STRING(element.to_string()));
-                    if let Value::ERROR(error_message) = interpreter.interpret_block(block.clone()) {
+                    self.begin_scope();
+                    self.declare("element".to_string(), Value::STRING(element.to_string()));
+                    if let Value::ERROR(error_message) = self.interpret_block(block.clone()) {
                         if error_message == "LoopExit".to_string() {
+                            self.end_scope();
+                            self.end_scope();
                             break;
                         }
                     }
+                    self.end_scope();
                 }
             } else {
                 error("For's second argument must be a block.");
@@ -358,12 +367,16 @@ impl Environment {
         } else if let Value::TABLE(table) = arguments[0].clone() {
             if let Value::BLOCK(block) = arguments[1].clone() {
                 for (key, value) in table.iter() {
-                    interpreter.environment.set("element".to_string(), Value::KEY_VALUE(key.to_string(), Box::new(value.clone())));
-                    if let Value::ERROR(error_message) = interpreter.interpret_block(block.clone()) {
+                    self.begin_scope();
+                    self.declare("element".to_string(), Value::KEY_VALUE(key.to_string(), Box::new(value.clone())));
+                    if let Value::ERROR(error_message) = self.interpret_block(block.clone()) {
                         if error_message == "LoopExit".to_string() {
+                            self.end_scope();
+                            self.end_scope();
                             break;
                         }
                     }
+                    self.end_scope();
                 }
             } else {
                 error("For's second argument must be a block.");
@@ -372,7 +385,7 @@ impl Environment {
             error("For's first argument must be a list.");
         };
 
-        self.restore(environment);
+        self.end_scope();
 
         Value::NULL
     }
@@ -382,8 +395,7 @@ impl Environment {
             error("Repeat must have only 2 arguments: a number (optional) and execution block.");
         }
 
-        let mut environment = self.child();
-        let mut interpreter = Interpreter::new(Expression::NUMBER(0f64), &mut environment);
+         self.begin_scope();
 
         if arguments.len() == 2 {
             let repetitions = if let Value::NUMBER(number) = arguments[0].clone() {
@@ -397,26 +409,34 @@ impl Environment {
 
             if let Value::BLOCK(block) = arguments[1].clone() {
                 for _ in 0..repetitions {
-                    if let Value::ERROR(error_message) = interpreter.interpret_block(block.clone()) {
+                    self.begin_scope();
+                    if let Value::ERROR(error_message) = self.interpret_block(block.clone()) {
                         if error_message == "LoopExit".to_string() {
+                            self.end_scope();
+                            self.end_scope();
                             break;
                         }
                     }
+                    self.end_scope();
                 }
             }
         } else {
             loop {
                 if let Value::BLOCK(block) = arguments[0].clone() {
-                    if let Value::ERROR(error_message) = interpreter.interpret_block(block.clone()) {
+                    self.begin_scope();
+                    if let Value::ERROR(error_message) = self.interpret_block(block.clone()) {
                         if error_message == "LoopExit".to_string() {
+                            self.end_scope();
+                            self.end_scope();
                             break;
                         }
                     }
+                    self.end_scope();
                 }
             }
         }
 
-        self.restore(environment);
+        self.end_scope();
 
         Value::NULL
     }
@@ -424,11 +444,9 @@ impl Environment {
     pub fn call_run(&mut self, arguments: Vec<Value>) -> Value {
         let mut last_result = Value::NULL;
 
-        let mut interpreter = Interpreter::new(Expression::NUMBER(0f64), self);
-
         for argument in arguments {
             if let Value::BLOCK(block) = argument {
-                last_result = interpreter.interpret_block(block);
+                last_result = self.interpret_block(block);
             } else {
                 last_result = argument;
             }
@@ -687,11 +705,6 @@ impl Environment {
         } else {
             error("Insert operation requires 2 or 3 arguments: an array (list or string), value and index (optional, if none, operate on last element).");
         }
-    }
-
-    pub fn call_set(&mut self, key: String, value: Value) -> Value {
-        self.set(key, value.clone());
-        value
     }
 
     pub fn call_time(&mut self, arguments: Vec<Value>) -> Value {

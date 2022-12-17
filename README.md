@@ -1,5 +1,5 @@
 # About Hier Language
-Hier is my second attempt at making a programming language (previous was GoldByte, but it had bad architecture, so it was easier to start from the  beginning). This time I decided to do actual research (Thanks for Crafting Interpreters). It runs code by interpreting AST so it is not very fast, but it currently works and writing a bytecode VM is a possibility. There are a issues with it and it is not perfect, but with time it will improve.
+Hier is my second attempt at making a programming language (previous was GoldByte, but it had bad architecture, so it was easier to start from the  beginning). This time I decided to do actual research (Thanks for Crafting Interpreters). It runs code by interpreting AST, so it is not very fast, but it currently works and writing a bytecode VM is a possibility. There are issues with it, and it is not perfect, but with time it will improve.
 
 # Usage
 Hier is written in Rust, so you will need to install its toolchain, if you don't have it. Go to www.rust-lang.org/learn/get-started for help.
@@ -12,7 +12,7 @@ Enter hier directory and run this to build an executable:
 cargo build --release
 ```
 The executable will appear in target/release. Go into this directory to run it.
-You can run REPL, by entering:
+You can run REPL by entering:
 ```
 ./hier repl
 ```
@@ -34,8 +34,6 @@ The language is functional (no classes) and everything in it (except directives)
 #main
 (print (+ 1 2 3 (- 1 2)))
 ```
-
-Currently, variables outside a block can't be modified.
 
 Almost all of Hier is value-based. That means that operation creates a copy of a value. For example, by using insert, remove or replace functions on an array, you don't change the original array, but create a new array with specified changes.
 
@@ -67,13 +65,13 @@ Tables are created using (# value1 value2) or (table value1 value2) function cal
 At this moment, adding fields is unsupported.
 
 # Blocks
-Blocks are made of expressions between curly brackets - { and }. The difference between them and lists is that blocks do not evaluate immediately. This means, that to run a block, you will need to put it as a expression for a function, that executes blocks, for example if, run and while. Blocks also have this property, that they evaluate to the last expression in it, so { (+ 1 2) (+ 5 6) } will evaluate to a value 11. All blocks always create new scopes.
+Blocks are made of expressions between curly brackets - { and }. The difference between them and lists is that blocks do not evaluate immediately. This means, that to run a block, you will need to put it as a expression for a function, that executes blocks, for example if, run or while. Blocks also have this property, that they evaluate to the last expression in it, so { (+ 1 2) (+ 5 6) } will evaluate to a value 11. All blocks always create new scopes.
 
 # Properties
 Properties can mean either "methods" or a property of a structure. If it appears at the beginning of a list, it will convert to a function with object as the first argument (look: lists). If it appears later, it will convert to a get function call, for example, (print a.b) will convert to (print (get a b)), which will get property b from object a.
 
 # Variables
-In Hier, you declare and assign variables using (@variable_name value_expression) syntax. You can get value of the variable by just using its identifier in a list further than first argument, for example, (print variable_name). If variable doesn't exist, Hier returns null. This behaviour may change and declaration might be introduced due to possible issues with this syntax. You can't change the value of a variable outside current block (this may also change) and assignment of variable always creates a new variable in current block. 
+In Hier, you declare a variable using (@variable_name value_expression) syntax. Two variables with the same name can't exist in the same scope (block). You can get value of the variable by just using its identifier in a list further than first argument, for example, (print variable_name). If variable doesn't exist, Hier returns null. You can use (=name value) to assign a new value to variable.
 
 # Subscripts
 Subscript is made by appending [value] to an expression. The value can be an identifier, a number, a block, a list and a string. Subscripts are converted like properties to a get function call, for example, (print array[0]) gets converted to (print (get array 0)).
@@ -87,7 +85,7 @@ Key-value is created using identifier(expression) syntax. You can access key usi
 Some identifiers get converted into values, like true, false and null. All other refer to variables.
 
 # Operators
-Operators are just functions called like other functions. There are operators for addition (+; also acts as a string concatenation operation), subtraction (-), multiplication (*), division (/), modulo (%; because all numbers are floats, it rounds all numbers down and then performs modulo), logical negation (!; the only operator that only accepts one argument) logical and (&&),logical or (||), null-coalescing (??; if left is null, returns right, and if left isn't null, return left), (non-)equality (!= and) and comparison (<, >, <= and >=). +, -, *, /, && and || accept many arguments. 
+Operators are just functions called like other functions. There are operators for addition (+; also acts as a string concatenation operation), subtraction (-), multiplication (*), division (/), modulo (%; because all numbers are floats, it rounds all numbers down and then performs modulo), logical negation (!; the only operator that only accepts one argument) logical and (&&),logical or (||), null-coalescing (??; if left is null, returns right, and if left isn't null, return left), (non-)equality (!= and ==) and comparison (<, >, <= and >=). +, -, *, /, && and || accept many arguments. 
 
 # Functions
 Functions are declared using (@function_name (| first_argument second_argument) { (print first_argument) }) syntax. Function | returns function arguments - a special value that just contains identifiers that are passed as arguments. The block is the code that will get executed when function is called. You call such function using normal syntax: (function_name 1 2). Hier checks arity (number of arguments) of functions and errors when it doesn't match. 
@@ -105,8 +103,8 @@ Run evaluates all (run accepts any number of arguments) of its arguments (includ
 If executes first block when condition is true and returns the result of its execution (the last expression). If there is a second block, it gets executed when condition is false and its value gets returned.
 
 ## While
-(while block block block)
-While first executes first block in the new scope. Then it checks the value of the second block (must evaluate to a bool) and if its true, then it executes third block. Then it repeats check and execution as long as check evaluates to true. Thevalue of while evaluation is null, but it may be changed to the value of the last iteration (same for for and repeat loops).  All blocks get executed in the same scope, so you can keep state between iterations using first block.
+(while block block)
+While first executes first block in the new scope. Then it checks the value of the second block (must evaluate to a bool) and if its true, then it executes third block. Then it repeats check and execution as long as check evaluates to true. Th evalue of while evaluation is null, but it may be changed to the value of the last iteration (same for for and repeat loops).
 
 ## Try
 (try expression block)

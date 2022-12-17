@@ -4,7 +4,6 @@ use std::env;
 use std::process::exit;
 use crate::environment::Environment;
 use crate::hier::Hier;
-use crate::interpreter::Interpreter;
 use crate::location::Location;
 use crate::parser::Parser;
 use crate::tokenizer::Tokenizer;

@@ -1,0 +1,57 @@
+#main
+#<checks.hier>
+
+(println "Tic-Tac-Toe game written in Hier
+====================
+At every prompt enter number from 1 to 9 to select a square.
+===================")
+
+(@show_plane (| plane) {
+    (println "----" "----" "----")
+    (print "|")
+    { (@i 0)
+    (while { (!= i 9) } {
+        (print " " plane[i] " " "|")
+        (@i (+ i 1))
+        (if (== (% i 3) 0) {
+            (println "")
+            (println "----" "----" "----")
+            (if (!= i 9) {
+                (print "|")
+            })
+        })
+    })
+})
+
+(@plane (& "0" "1" "2" "3" "4" "5" "6" "7" "8"))
+(show_plane plane)
+(@plane plane) (@player false)
+(repeat {
+    (@plane (if player {
+        (print "X: ")
+        (@index (number (read)))
+        (if (!= plane[index] "O") {
+            (replace plane index "X")
+        } {
+            plane
+        })
+    } {
+        (print "O: ")
+        (@index (number (read)))
+        (if (!= plane[index] "X") {
+            (replace plane index "O")
+        } {
+            plane
+        })
+    }))
+    (show_plane plane)
+    (if (check_if_tie plane) {
+        (println "Tie!")
+        (break)
+     })
+    (if (check_if_won plane) {
+        (println (if player { "X" } { "O" }) " won!")
+        (break)
+    })
+    (@player (! player))
+})
