@@ -46,7 +46,7 @@ fn add_defaults(hier: &mut Hier) {
     hier.add_function("rand".to_string(), 2, rand_function);
     hier.add_function("cmd".to_string(), 1, cmd_function);
     hier.add_function("write".to_string(), 2, write_function);
-    hier.add_function("file".to_string(), 2, file_function);
+    hier.add_function("file".to_string(), 1, file_function);
 }
 
 fn main() {
@@ -107,7 +107,7 @@ fn repl() -> ! {
     repl_environment.values.insert(VariableId(0, "rand".to_string()), Value::NATIVE_FUNCTION(rand_function, 2));
     repl_environment.values.insert(VariableId(0, "cmd".to_string()), Value::NATIVE_FUNCTION(cmd_function, 1));
     repl_environment.values.insert(VariableId(0, "write".to_string()), Value::NATIVE_FUNCTION(write_function, 2));
-    repl_environment.values.insert(VariableId(0, "file".to_string()), Value::NATIVE_FUNCTION(file_function, 2));
+    repl_environment.values.insert(VariableId(0, "file".to_string()), Value::NATIVE_FUNCTION(file_function, 1));
 
     loop {
         print!("> ");
