@@ -1,18 +1,19 @@
 mod functions;
+mod hier;
 
 extern crate core;
 
 use std::{env, fs, io, panic};
 use std::env::current_dir;
 use std::io::Write;
+use std::path::PathBuf;
 use std::process::exit;
-use libhier::environment::{Environment, VariableId};
-use libhier::expression::Expression;
-use libhier::hier::Hier;
-use libhier::parser::Parser;
-use libhier::tokenizer::Tokenizer;
-use libhier::value::Value;
-use libhier::warning;
+use hier::environment::{Environment, VariableId};
+use hier::expression::Expression;
+use hier::hier::Hier;
+use hier::parser::Parser;
+use hier::tokenizer::Tokenizer;
+use hier::value::Value;
 use functions::*;
 
 fn print_usage() {
@@ -53,33 +54,35 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() == 1 {
-        let mut hier = Hier::new(module_reader, exit_handler);
+        let mut hier = Hier::new("./repl".to_string(), module_reader, exit_handler);
         add_defaults(&mut hier);
         repl();
     } else if args.len() == 2 {
         let path = args[1].clone();
-        let contents = fs::read_to_string(path)
+        let contents = fs::read_to_string(path.clone())
             .expect("Unable to read the file.");
-        let mut hier = Hier::new(module_reader, exit_handler);
+        let full_path = fs::canonicalize(PathBuf::from(path)).expect("Unable to resolve file.").to_str().unwrap().to_string();
+        let mut hier = Hier::new(full_path, module_reader, exit_handler);
         add_defaults(&mut hier);
         hier.run(contents);
     } else if args.len() == 3 {
         match &args[1] as &str {
             "file" => {
-                let path = args[1].clone();
-                let contents = fs::read_to_string(path)
+                let path = args[2].clone();
+                let contents = fs::read_to_string(path.clone())
                     .expect("Unable to read the file.");
-                let mut hier = Hier::new(module_reader, exit_handler);
+                let full_path = fs::canonicalize(PathBuf::from(path)).expect("Unable to resolve file.").to_str().unwrap().to_string();
+                let mut hier = Hier::new(full_path, module_reader, exit_handler);
                 add_defaults(&mut hier);
                 hier.run(contents);
             },
             "run" => {
-                let mut hier = Hier::new(module_reader, exit_handler);
+                let mut hier = Hier::new("./code".to_string(), module_reader, exit_handler);
                 add_defaults(&mut hier);
                 hier.run(args[2].clone());
             },
             "repl" => {
-                let mut hier = Hier::new(module_reader, exit_handler);
+                let mut hier = Hier::new("./repl".to_string(), module_reader, exit_handler);
                 add_defaults(&mut hier);
                 repl()
             },
@@ -92,7 +95,7 @@ fn main() {
 }
 
 fn repl() -> ! {
-    let mut repl_environment = Environment::new(true, module_reader, exit_handler);
+    let mut repl_environment = Environment::new(true, "./repl".to_string(), module_reader, exit_handler);
 
     repl_environment.values.insert(VariableId(0, "cwd".to_string()), match current_dir() {
         Ok(path) => Value::STRING(path.to_str().unwrap().to_string()),
@@ -123,23 +126,23 @@ fn repl() -> ! {
             exit_handler();
         }
 
-        let mut tokenizer = Tokenizer::new(line, module_reader, exit_handler);
+        let mut tokenizer = Tokenizer::new(line);
 
         tokenizer.module_name = "REPL".to_string();
 
-        if tokenizer.tokenize() {
+        if tokenizer.tokenize_code() {
             eprintln!("Failed.");
             continue;
         }
 
-        let mut parser = Parser::new(tokenizer.tokens);
+        let mut parser = Parser::new(tokenizer.tokens, module_reader, exit_handler);
 
         if parser.parse() {
             eprintln!("Failed.");
             continue;
         }
 
-        let code = if let Expression::BLOCK(code) = parser.code {
+        let code = if let Expression::BLOCK(code, _) = parser.code {
             code
         } else {
             vec![parser.code]

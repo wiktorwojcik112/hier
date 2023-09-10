@@ -7,4 +7,3 @@ edition = "2021"
 
 [dependencies]
 rand = "0.7.3"
-libhier = { git = "https://github.com/wiktorwojcik112/libhier" }

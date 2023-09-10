@@ -1,8 +1,7 @@
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
-use libhier::environment::Environment;
-use libhier::value::Value;
-use libhier::warning;
+use crate::hier::environment::Environment;
+use crate::hier::value::Value;
 use rand::Rng;
 
 pub fn time_function(environment: &mut Environment, _arguments: Vec<Value>) -> Value {
@@ -17,7 +16,7 @@ pub fn write_function(environment: &mut Environment, arguments: Vec<Value>) -> V
         if let Value::STRING(contents) = arguments[1].clone() {
             match std::fs::write(path, contents.as_bytes()) {
                 Ok(_bytes) => Value::STRING(contents),
-                Err(error) => { warning(&format!("Failed to write to file: {}", error)); Value::NULL }
+                Err(error) => { println!("{}", &format!("Failed to write to file: {}", error)); Value::NULL }
             }
         } else {
             environment.error("Write operation requires second argument to be a string to write.");

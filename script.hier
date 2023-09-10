@@ -1,3 +1,2 @@
-#main
-
-(print "5")
+(@game (import "./examples/tic_tac_toe"))
+(game#play)

@@ -1,16 +1,30 @@
-#checks
-
 (@check_if_won (| plane) {
-    /* Fix when multiple arguments binary operations are introduced */
-    (|| (&& (== plane[0] plane[1]) (== plane[0] plane[2])) (&& (== plane[3] plane[4]) (== plane[3] plane[5])) (&& (== plane[6] plane[7]) (== plane[6] plane[8])) (&& (== plane[0] plane[4]) (== plane[0] plane[8])) (&& (== plane[2] plane[4]) (== plane[2] plane[6])) (&& (== plane[0] plane[3]) (== plane[0] plane[6])) (&& (== plane[1] plane[4]) (== plane[1] plane[7])) (&& (== plane[2] plane[5]) (== plane[2] plane[8])))
+    (||
+        (== plane[0] plane[1] plane[2])
+        (== plane[3] plane[4] plane[5])
+        (== plane[6] plane[7] plane[8])
+        (== plane[0] plane[4] plane[8])
+        (== plane[2] plane[4] plane[6])
+        (== plane[0] plane[3] plane[6])
+        (== plane[1] plane[4] plane[7])
+        (== plane[2] plane[5] plane[8])
+    )
 })
 
 (@check_if_filled (| square) {
-    /* Fix when multiple arguments binary operations are introduced */
     (|| (== square "X") (== square "O"))
 })
 
 (@check_if_tie (| plane) {
-    /* Fix when multiple arguments binary operations are introduced */
-    (&& (check_if_filled plane[0]) (check_if_filled plane[1]) (check_if_filled plane[2]) (check_if_filled plane[3]) (check_if_filled plane[4]) (check_if_filled plane[5]) (check_if_filled plane[6]) (check_if_filled plane[7]) (check_if_filled plane[8]))
+    (&&
+        (check_if_filled plane[0])
+        (check_if_filled plane[1])
+        (check_if_filled plane[2])
+        (check_if_filled plane[3])
+        (check_if_filled plane[4])
+        (check_if_filled plane[5])
+        (check_if_filled plane[6])
+        (check_if_filled plane[7])
+        (check_if_filled plane[8])
+    )
 })
