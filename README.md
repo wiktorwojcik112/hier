@@ -93,8 +93,8 @@ In Hier, you declare a variable using (@variable_name value_expression) syntax. 
 Subscript is made by appending [value] to an expression. The value can be an identifier, a number, a block, a list and a string. Subscripts are converted like properties to a get function call, for example, (print array[0]) gets converted to (print (get array 0)).
 
 # Key-value
-Key-value is created using identifier(expression) syntax. You can access key using its key property and value using its value property, like this:
-(@some key("value"))
+Key-value is created using identifier:expression syntax. You can access key using its key property and value using its value property, like this:
+(@some key:"value")
 (print some.key some.value)
 
 # Identifiers
