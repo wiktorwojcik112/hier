@@ -1,0 +1,2 @@
+(@game (import "./examples/tic_tac_toe"))
+(game#play)
