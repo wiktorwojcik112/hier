@@ -264,7 +264,15 @@ impl Tokenizer {
     fn identifier(&mut self) {
         let mut identifier = String::new();
 
+        let mut is_first_colon = true;
+
         while self.current_index < self.code.len() && self.peek() != ' ' && self.peek() != '(' && self.peek() != ')' && self.peek() != '.' && self.peek() != '\n' && self.peek() != ']' && self.peek() != '[' {
+            if self.peek() == ':' && self.peek_next() != ':' && is_first_colon {
+                break;
+            } else if self.peek() == ':' {
+                is_first_colon = false;
+            }
+
             identifier.push(self.consume());
         }
 
