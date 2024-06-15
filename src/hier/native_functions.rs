@@ -744,6 +744,28 @@ impl Environment {
         }
     }
 
+    pub fn call_append(&mut self, arguments: Vec<Value>) -> Value {
+        if arguments.len() != 2 {
+            self.error("Append operation requires 2 arguments: an array (list or string) and a value.");
+        }
+
+        if let Value::LIST(list) = arguments[0].clone() {
+            let mut values = list;
+            values.push(arguments[1].clone());
+            Value::LIST(values)
+        } else if let Value::STRING(string) = arguments[0].clone() {
+            if let Value::STRING(new) = arguments[1].clone() {
+                let mut e_string = string;
+                e_string.push_str(&*new);
+                Value::STRING(e_string)
+            } else {
+                self.error("Append expected a second string.");
+            }
+        } else {
+            self.error("Append operation requires 2 arguments: an array (list or string) and a value.");
+        }
+    }
+
     pub fn call_remove(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() == 1 {
             if let Value::LIST(list) = arguments[0].clone() {

@@ -31,7 +31,7 @@
             (print "X: ")
             (@index (- (number (read)) 1))
             (if (!= plane[index] "O") {
-                (replace plane index "X")
+                (plane.replace index "X")
             } {
                 plane
             })
@@ -39,7 +39,7 @@
             (print "O: ")
             (@index (- (number (read)) 1))
             (if (!= plane[index] "X") {
-                (replace plane index "O")
+                (plane.replace index "O")
             } {
                 plane
             })

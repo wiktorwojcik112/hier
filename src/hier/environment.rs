@@ -242,6 +242,7 @@ impl Environment {
                 "&&" | "||" => self.call_logical(name, arguments),
                 "==" | "!=" | "<=" | ">=" | "<" | ">" => self.call_comparison(name, arguments),
                 "??" => self.call_null_coalescing(arguments),
+                "append" => self.call_append(arguments),
                 "%" => self.call_modulo(arguments),
                 "is" => self.call_is(arguments),
                 "print" => self.call_print(arguments),
