@@ -45,11 +45,11 @@
             })
         }))
         (show_plane plane)
-        (if (checks#check_if_tie plane) {
+        (if (checks::check_if_tie plane) {
             (println "Tie!")
             (break)
          })
-        (if (checks#check_if_won plane) {
+        (if (checks::check_if_won plane) {
             (println (if player { "X" } { "O" }) " won!")
             (break)
         })

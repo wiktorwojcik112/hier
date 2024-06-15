@@ -38,7 +38,7 @@ The language is mainly functional (no classes) and everything in it (except dire
 Almost all of Hier is value-based. That means that operation creates a copy of a value. For example, by using insert, remove or replace functions on an array, you don't change the original array, but create a new array with specified changes.
 
 # Importing
-In Hier you can import files using import function which accepts a string with a path to a hier file (./ at the beginning is automatically prepended and .hier is added at the end). It returns a special object which you can assign to a variable and use it by prepending an identifier with this variables name and # (object#identifier). Here is an example showing how importing of an example library (library.hier) and another one in a folder (./math/constants.hier).
+In Hier you can import files using import function which accepts a string with a path to a hier file (./ at the beginning is automatically prepended and .hier is added at the end). It returns a special object which you can assign to a variable and use it by prepending an identifier with this variables name and :: (object::identifier). Here is an example showing how importing of an example library (library.hier) and another one in a folder (./math/constants.hier).
 
 ./library.hier
 ```
@@ -54,10 +54,10 @@ In Hier you can import files using import function which accepts a string with a
 ./main.hier
 ```
 (@mylibrary (import "library"))
-(library#hello "World")
+(library::hello "World")
 (@constants (import "math/constants"))
-(print "Pi is equal " constants#pi)
-(print "Golden ratio is equal " constants#golden_ratio)
+(print "Pi is equal " constants::pi)
+(print "Golden ratio is equal " constants::golden_ratio)
 ```
 
 # Lists

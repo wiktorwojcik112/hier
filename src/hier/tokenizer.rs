@@ -264,7 +264,7 @@ impl Tokenizer {
     fn identifier(&mut self) {
         let mut identifier = String::new();
 
-        while self.current_index < self.code.len() && self.peek() != ' ' && self.peek() != ':' && self.peek() != '(' && self.peek() != ')' && self.peek() != '.' && self.peek() != '\n' && self.peek() != ']' && self.peek() != '[' {
+        while self.current_index < self.code.len() && self.peek() != ' ' && self.peek() != '(' && self.peek() != ')' && self.peek() != '.' && self.peek() != '\n' && self.peek() != ']' && self.peek() != '[' {
             identifier.push(self.consume());
         }
 

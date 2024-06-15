@@ -78,9 +78,9 @@ impl Environment {
     }
 
     pub fn get(&self, key: String) -> Value {
-        if key.contains('#') {
+        if key.contains("::") {
             // We can unwrap, because it is nil only if the delimiter is not present, but we can be sure, because we checked.
-            let path = key.split_once("#").unwrap();
+            let path = key.split_once("::").unwrap();
 
             let environment = self.get(path.0.to_string());
 
@@ -209,9 +209,9 @@ impl Environment {
     }
 
     pub fn call_function(&mut self, name: &String, arguments: Vec<Value>) -> Value {
-        if name.contains('#') {
+        if name.contains("::") {
             // We can unwrap, because it is nil only if the delimiter is not present, but we can be sure, because we checked.
-            let path = name.split_once("#").unwrap();
+            let path = name.split_once("::").unwrap();
 
             let environment = self.get(path.0.to_string());
 
