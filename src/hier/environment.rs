@@ -82,6 +82,10 @@ impl Environment {
             // We can unwrap, because it is nil only if the delimiter is not present, but we can be sure, because we checked.
             let path = key.split_once("::").unwrap();
 
+            if path.1.to_string()[0] == '_' {
+                return Value::NULL;
+            }
+
             let environment = self.get(path.0.to_string());
 
             if let Value::ENVIRONMENT(target_environment) = environment {
@@ -106,9 +110,13 @@ impl Environment {
     }
 
     fn get_in_scope(&self, key: String, scope: Scope) -> Value {
-        if key.contains('#') {
+        if key.contains("::") {
             // We can unwrap, because it is nil only if the delimiter is not present, but we can be sure, because we checked.
-            let path = key.split_once("#").unwrap();
+            let path = key.split_once("::").unwrap();
+
+            if path.1.to_string()[0] == '_' {
+                return Value::NULL;
+            }
 
             let environment = self.values.get(&VariableId(scope, key.clone()));
 
@@ -210,8 +218,11 @@ impl Environment {
 
     pub fn call_function(&mut self, name: &String, arguments: Vec<Value>) -> Value {
         if name.contains("::") {
-            // We can unwrap, because it is nil only if the delimiter is not present, but we can be sure, because we checked.
             let path = name.split_once("::").unwrap();
+
+            if path.1.to_string()[0] == '_' {
+                return Value::NULL;
+            }
 
             let environment = self.get(path.0.to_string());
 
