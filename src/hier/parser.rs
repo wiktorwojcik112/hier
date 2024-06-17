@@ -216,6 +216,7 @@ impl Parser {
         expression
     }
 
+    /// Parses an identifier, but it also handles chains and before-list syntax.
     fn parse_identifier(&mut self, identifier: String, location: Location, current_list: &mut Vec<Expression>, is_list: bool) -> Expression {
         if identifier == ">" {
             /*
@@ -251,10 +252,24 @@ impl Parser {
 
             Expression::LIST(next_expression, location)
         } else {
+            // Check this out
             if let Token::COLON(_) = self.peek().clone() {
                 self.consume();
                 let value = self.parse_expression();
                 Expression::KEY_VALUE(identifier.to_string().clone(), Box::new(value), location)
+            } else if identifier.contains('(') {
+                let mut true_identifier = identifier.clone();
+                true_identifier.remove(true_identifier.len() - 1);
+
+                let mut list_content: Vec<Expression> = vec![Expression::IDENTIFIER(true_identifier, location.clone())];
+
+                if let Token::LEFT_BRACKET(_) = self.peek() {
+                    self.consume();
+                    list_content.extend(self.parse_list());
+                    Expression::LIST(list_content, location)
+                } else {
+                    Expression::IDENTIFIER(identifier.clone(), location)
+                }
             } else {
                 Expression::IDENTIFIER(identifier.clone().to_string(), location)
             }

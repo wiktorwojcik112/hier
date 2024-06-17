@@ -1,6 +1,9 @@
 # About Hier Language
 Hier is my second attempt at making a programming language (previous was GoldByte, but it had bad architecture, so it was easier to start from the  beginning). This time I decided to do actual research (Thanks for Crafting Interpreters). It runs code by interpreting AST, so it is not very fast, but it currently works and writing a bytecode VM is a possibility. There are issues with it, and it is not perfect, but with time it will improve.
 
+# Reason
+Hier is a toy programming language created by me to learn more about their development. It is not meant to be efficient, but it is meant to be a experimented on. My final goal would be to make it complete by implementing things like debugger, package manager and writing some libraries like immediate or declarative GUI and HTTP server.
+
 # Usage
 Hier is written in Rust, so you will need to install its toolchain, if you don't have it. Go to www.rust-lang.org/learn/get-started for help.
 Clone this repo to your machine:
@@ -26,17 +29,24 @@ To run a file, enter:
 ```
 
 # Design
-Hier has a syntax similar to Lisp. Hier contains only 5 constructs: lists (using ( and ) ), blocks (using { and }), numbers (number with optional ., for example: 1.0, 2.5, -1.5, 5, -3), strings (using " and ", they can contain all characters except ", because there is no interpolation and they can be multiline (new lines are included in string)), subscripts (expression with [ ]), properties (expression with . and its property (including functions)), identifiers (any characters, except it can't begin with " and must not contain spaces, :, (, ), ., new lines, [ and ]) and directives (which begin with #).
+Hier has a syntax similar to Lisp. At the core of Hier, there are 6 constructs: lists (using ( and ) ), blocks (using { and }), numbers (number with optional ., for example: 1.0, 2.5, -1.5, 5, -3), strings (using " and ", they can contain all characters and have interpolation) and they can be multiline (new lines are included in string)), identifiers (any characters, except it can't begin with " and must not contain spaces, :, (, ), ., new lines, [ and ]) and directives (which begin with #).
 
-The language is mainly functional (no classes) and everything in it (except directives) is some kind an expression. Here is an example of a program which adds numbers 1 2 3 and result of subtracting 2 from 1 and prints it:
+Everything else builds off of these blocks and converts into a core construct.. 
+- properties ```(a.func 1)``` -> ```(func a 1)```,
+- subscripts ```a[0]``` -> ```(get a 0)```,
+- single block ```!(+ 1 2)``` -> ```{ (+ 1 2) }```,
+- chain ```(1 2 3) > (map { (+ element 1) })``` ->  ```(map (1 2 3) { (+ element 1) })```.
+- before-list ```*(+(1 2) +(3 4))``` -> ```(* (+ 1 2) (+ 3 4))```
+
+The language is mainly functional (no classes<sup>1</sup>) and everything in it (except directives) is some kind of an expression. Here is an example of a program which adds numbers 1 2 3 and result of subtracting 2 from 1 and prints it:
 
 ```
-#main
 (print (+ 1 2 3 (- 1 2)))
 ```
 
 Almost all of Hier is value-based. That means that operation creates a copy of a value. For example, by using insert, remove or replace functions on an array, you don't change the original array, but create a new array with specified changes.
 
+1. Altough natively there are no classes, you can use 
 # Importing
 In Hier you can import files using import function which accepts a string with a path to a hier file (./ at the beginning is automatically prepended and .hier is added at the end). It returns a special object which you can assign to a variable and use it by prepending an identifier with this variables name and :: (object::identifier). Here is an example showing how importing of an example library (library.hier) and another one in a folder (./math/constants.hier).
 
@@ -106,10 +116,13 @@ Operators are just functions called like other functions. There are operators fo
 # Piping
 Pipe is represented using > symbol. When pipe is used, the previous list is placed inside the next list as first argument.
 This allows for more readable chaining of long commands. For example, instead of
-(print (map (1 2 3) { (+ element 1 }))
+```(print (map (1 2 3) { (+ element 1 }))```
 you can write
-(1 2 3) > (map { (+ element 1) }) > (print)
+```(1 2 3) > (map { (+ element 1) }) > (print)```
 The piping syntax is converted into the first example, so it has the same effect.
+
+# Before-list syntax
+If you put an identifier right before a list, it will be interpreted as if it was it's first element. That means that ```*(+(1 2) +(3 4))``` becomes ```(* (+ 1 2) (+ 3 4))```. This works with every identifier, except !. At this moment properties are not supported.
 
 # Functions
 Functions are declared using (@function_name (| first_argument second_argument) { (print first_argument) }) syntax. Function | returns function arguments - a special value that just contains identifiers that are passed as arguments. The block is the code that will get executed when function is called. You call such function using normal syntax: (function_name 1 2). Hier checks arity (number of arguments) of functions and errors when it doesn't match.

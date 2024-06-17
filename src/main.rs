@@ -122,7 +122,7 @@ fn repl() -> ! {
             exit_handler();
         };
 
-        if line == "(exit)\n" {
+        if line == "(exit)\n" || line == "exit\n" {
             exit_handler();
         }
 

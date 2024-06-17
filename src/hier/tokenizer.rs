@@ -276,7 +276,12 @@ impl Tokenizer {
             identifier.push(self.consume());
         }
 
-        self.tokens.push(Token::IDENTIFIER(identifier, self.make_location()));
+        if self.peek() == '(' {
+            // This a way to inform the parser, that identifier is right before a list.
+            self.tokens.push(Token::IDENTIFIER(identifier + "(", self.make_location()));
+        } else {
+            self.tokens.push(Token::IDENTIFIER(identifier, self.make_location()));
+        }
     }
 
     fn number(&mut self) {
@@ -286,7 +291,7 @@ impl Tokenizer {
         let mut is_first_character = true;
 
 
-        while self.current_index < self.code.len() && self.peek() != ')' && self.peek() != ' ' && self.peek() != '\n' && self.peek() != ']' {
+        while self.current_index < self.code.len() && self.peek() != ')' && self.peek() != '(' && self.peek() != ' ' && self.peek() != '\n' && self.peek() != ']' {
             if had_error {
                 continue;
             }
@@ -304,6 +309,8 @@ impl Tokenizer {
                 }
 
                 number_string.push(current_char);
+            } else if current_char == '(' {
+
             } else {
                 report(&format!("Character {} is disallowed in numbers. Only . - 0 1 2 3 4 5 6 7 8 9 characters are allowed.", current_char), self.make_location());
                 had_error = true;
@@ -313,8 +320,13 @@ impl Tokenizer {
         }
 
         if number_string == "-" {
-            self.tokens.push(Token::IDENTIFIER("-".to_string(), self.make_location()));
-            return;
+            if self.peek() == '(' {
+                self.tokens.push(Token::IDENTIFIER("-(".to_string(), self.make_location()));
+                return;
+            } else {
+                self.tokens.push(Token::IDENTIFIER("-".to_string(), self.make_location()));
+                return;
+            }
         }
 
         if !had_error {
