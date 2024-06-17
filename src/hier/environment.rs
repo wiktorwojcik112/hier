@@ -82,7 +82,7 @@ impl Environment {
             // We can unwrap, because it is nil only if the delimiter is not present, but we can be sure, because we checked.
             let path = key.split_once("::").unwrap();
 
-            if path.1.to_string()[0] == '_' {
+            if path.1.to_string().chars().collect::<Vec<char>>()[0] == '_' {
                 return Value::NULL;
             }
 
@@ -114,7 +114,7 @@ impl Environment {
             // We can unwrap, because it is nil only if the delimiter is not present, but we can be sure, because we checked.
             let path = key.split_once("::").unwrap();
 
-            if path.1.to_string()[0] == '_' {
+            if path.1.to_string().chars().collect::<Vec<char>>()[0] == '_' {
                 return Value::NULL;
             }
 
@@ -220,7 +220,7 @@ impl Environment {
         if name.contains("::") {
             let path = name.split_once("::").unwrap();
 
-            if path.1.to_string()[0] == '_' {
+            if path.1.to_string().chars().collect::<Vec<char>>()[0] == '_' {
                 return Value::NULL;
             }
 
