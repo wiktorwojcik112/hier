@@ -28,4 +28,41 @@ impl Expression {
             Expression::KEY_VALUE(_, _, location) => location.clone()
         }
     }
+
+    pub fn get_representation(&self) -> String {
+        match self {
+            Expression::STRING(value, _) => "\"".to_string() + &*(value.raw.clone()) + "\"",
+            Expression::NUMBER(value, _) => value.to_string().clone(),
+            Expression::IDENTIFIER(value, _) => value.clone(),
+            Expression::PROPERTY(key, property, _) => key.get_representation() + "." + &*(property.clone()),
+            Expression::VALUE(value) => value.text_representation().clone(),
+            Expression::KEY_VALUE(key, value, _) => key.clone() + ":" + &*(value.get_representation()),
+            Expression::LIST(expressions, _) => {
+                let mut result = String::from("(");
+                let mut i = 0;
+                for expression in expressions {
+                    result.push_str(&*(expression.get_representation()));
+
+                    if i < expressions.len() - 1 {
+                        result += " ";
+                        i += 1;
+                    }
+                }
+
+                result.push_str(")");
+                result
+            },
+            Expression::BLOCK(expressions, _) => {
+                let mut result = String::from("{ ");
+
+                for expression in expressions {
+                    result.push_str(&*(expression.get_representation()));
+                    result += " ";
+                }
+
+                result.push_str("}");
+                result
+            }
+        }
+    }
 }

@@ -13,7 +13,7 @@ enum InterpolatedStringPart {
 #[derive(Debug, Clone)]
 pub struct InterpolatedString {
     parts: Vec<InterpolatedStringPart>,
-    raw: String,
+    pub raw: String,
     current_index: usize,
     pub module_reader: fn(String) -> String,
     pub exit_handler: fn() -> !

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::io;
 use std::io::Write;
+use crate::hier::debugger::debug;
 use crate::hier::environment::Environment;
 use crate::hier::hier::Hier;
 use crate::hier::parser::Parser;
@@ -670,7 +671,7 @@ impl Environment {
                 (self.exit_handler)();
             }
 
-            let mut environment = Environment::new(false, path, self.module_reader, self.exit_handler);
+            let mut environment = Environment::new(false, path, self.module_reader, self.exit_handler, self.is_debugging, self.breakpoints.clone());
 
             environment.code = parser.code;
             environment.interpret();
@@ -881,6 +882,18 @@ impl Environment {
         Value::ERROR("LoopExit".to_string())
     }
 
+    pub fn call_brpoint(&mut self, arguments: Vec<Value>) -> Value {
+        if arguments.len() != 0 {
+            self.error("Breakpoint operation requires 0 arguments.");
+        }
+
+        if self.is_debugging {
+            debug(self, &String::from("Brpoint"));
+        }
+
+        Value::NULL
+    }
+
     pub fn call_round(&mut self, arguments: Vec<Value>) -> Value {
         if arguments.len() != 1 {
             self.error("Round operation requires 1 number argument.");
@@ -916,7 +929,7 @@ impl Environment {
         }
 
         if let Value::STRING(code) = arguments[0].clone() {
-            let mut hier = Hier::new(self.path.clone(), self.module_reader, self.exit_handler);
+            let mut hier = Hier::new(self.path.clone(), self.module_reader, self.exit_handler, false);
             hier.run(code)
         } else {
             self.error("Evaluate operation requires a string argument.");

@@ -54,7 +54,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() == 1 {
-        let mut hier = Hier::new("./repl".to_string(), module_reader, exit_handler);
+        let mut hier = Hier::new("./repl".to_string(), module_reader, exit_handler, false);
         add_defaults(&mut hier);
         repl();
     } else if args.len() == 2 {
@@ -62,7 +62,7 @@ fn main() {
         let contents = fs::read_to_string(path.clone())
             .expect("Unable to read the file.");
         let full_path = fs::canonicalize(PathBuf::from(path)).expect("Unable to resolve file.").to_str().unwrap().to_string();
-        let mut hier = Hier::new(full_path, module_reader, exit_handler);
+        let mut hier = Hier::new(full_path, module_reader, exit_handler, false);
         add_defaults(&mut hier);
         hier.run(contents);
     } else if args.len() == 3 {
@@ -72,17 +72,26 @@ fn main() {
                 let contents = fs::read_to_string(path.clone())
                     .expect("Unable to read the file.");
                 let full_path = fs::canonicalize(PathBuf::from(path)).expect("Unable to resolve file.").to_str().unwrap().to_string();
-                let mut hier = Hier::new(full_path, module_reader, exit_handler);
+                let mut hier = Hier::new(full_path, module_reader, exit_handler, false);
+                add_defaults(&mut hier);
+                hier.run(contents);
+            },
+            "debug" => {
+                let path = args[2].clone();
+                let contents = fs::read_to_string(path.clone())
+                    .expect("Unable to read the file.");
+                let full_path = fs::canonicalize(PathBuf::from(path)).expect("Unable to resolve file.").to_str().unwrap().to_string();
+                let mut hier = Hier::new(full_path, module_reader, exit_handler, true);
                 add_defaults(&mut hier);
                 hier.run(contents);
             },
             "run" => {
-                let mut hier = Hier::new("./code".to_string(), module_reader, exit_handler);
+                let mut hier = Hier::new("./code".to_string(), module_reader, exit_handler, false);
                 add_defaults(&mut hier);
                 hier.run(args[2].clone());
             },
             "repl" => {
-                let mut hier = Hier::new("./repl".to_string(), module_reader, exit_handler);
+                let mut hier = Hier::new("./repl".to_string(), module_reader, exit_handler, false);
                 add_defaults(&mut hier);
                 repl()
             },
@@ -95,7 +104,9 @@ fn main() {
 }
 
 fn repl() -> ! {
-    let mut repl_environment = Environment::new(true, "./repl".to_string(), module_reader, exit_handler);
+    println!("Hier REPL");
+    println!("Type (exit) or exit to exit."); // :)
+    let mut repl_environment = Environment::new(true, "./repl".to_string(), module_reader, exit_handler, false, vec![]);
 
     repl_environment.values.insert(VariableId(0, "cwd".to_string()), match current_dir() {
         Ok(path) => Value::STRING(path.to_str().unwrap().to_string()),

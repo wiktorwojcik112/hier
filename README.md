@@ -70,6 +70,11 @@ In Hier you can import files using import function which accepts a string with a
 (print "Golden ratio is equal " constants::golden_ratio)
 ```
 
+# Debugger
+Hier has a builtin debugger. To debug a file, run it using ```hier debug <file>```. To learn about the commands, type h or help.
+
+You can set breakpoints from the debugger console and from code using ```(brpoint)``` function (when not in debug mode, it is ignored).
+
 # Lists
 Lists are fundamental element of Hier. They are made of expressions between ( and ). The list may be a function call depending on circumstances. If first expression is an identifier, it will work like a function call, for example (print 1 2 3). If first expression is a property it will work like a syntactic sugar for function call on object, for example, it will convert (array.insert 1) to (insert array 1), allowing clearer syntax. If first expression evaluates to function arguments (for example: (| a b c)), list will evaluate to an anonymous function. Otherwise, it will generate an array (in Hier, arrays are collective name for lists and arrays). Lists (arrays) can also be created using (& value1 value2) function call or (list value1 value2) function call.
 

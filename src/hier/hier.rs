@@ -1,3 +1,4 @@
+use crate::hier::debugger;
 use crate::hier::environment::{Environment, VariableId};
 use crate::hier::parser::Parser;
 use crate::hier::tokenizer::Tokenizer;
@@ -6,15 +7,17 @@ use crate::hier::value::Value;
 pub struct Hier {
     environment: Environment,
     module_reader: fn(String) -> String,
-    exit_handler: fn() -> !
+    exit_handler: fn() -> !,
+    pub debug: bool
 }
 
 impl Hier {
-    pub fn new(path: String, module_reader: fn(String) -> String, exit_handler: fn() -> !) -> Self {
+    pub fn new(path: String, module_reader: fn(String) -> String, exit_handler: fn() -> !, debug: bool) -> Self {
         Self {
-            environment: Environment::new(false, path, module_reader, exit_handler),
+            environment: Environment::new(false, path, module_reader, exit_handler, debug, vec![]),
             module_reader,
-            exit_handler
+            exit_handler,
+            debug
         }
     }
 
@@ -41,6 +44,11 @@ impl Hier {
         }
 
         self.environment.code = parser.code;
+
+        if self.debug {
+            debugger::debug(&mut self.environment, &String::new());
+        }
+
         self.environment.interpret()
     }
 

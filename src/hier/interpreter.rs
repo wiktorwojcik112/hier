@@ -59,11 +59,12 @@ impl Environment {
     }
 
     pub fn visit_list(&mut self, list: Expression) -> Value {
+        let main = list.clone();
         self.current_interpreting_location = list.get_location().clone();
 
         if let Expression::LIST(list, _) = list {
             if list.len() == 0 {
-                Value::NULL
+                Value::LIST(vec![])
             } else {
                 if let Expression::IDENTIFIER(name, _) = &list[0] {
                     if name == "|" {
@@ -91,6 +92,7 @@ impl Environment {
                             values.push(self.visit(expression));
                         }
 
+                        self.current_interpreting_expression = main;
                         self.call_function(&name, values)
                     }
                 } else if let Expression::PROPERTY(expression, identifier, _) = &list[0] {
@@ -104,6 +106,7 @@ impl Environment {
                         values.push(self.visit(expression));
                     }
 
+                    self.current_interpreting_expression = main;
                     self.call_function(identifier, values)
                 } else {
                     if let Value::FUNCTION_ARGUMENTS(arguments) = self.visit(list[0].clone()) {

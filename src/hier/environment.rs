@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use crate::hier::expression::Expression;
 use crate::hier::interpreter::warning;
 use crate::hier::location::Location;
-use crate::hier::report;
+use crate::hier::{debugger, report};
 use crate::hier::value::Value;
 
 
@@ -20,11 +20,15 @@ pub struct Environment {
     is_in_repl: bool,
     pub module_reader: fn(String) -> String,
     pub exit_handler: fn() -> !,
-    pub current_interpreting_location: Location
+    pub current_interpreting_location: Location,
+    pub current_interpreting_expression: Expression,
+    pub is_debugging: bool,
+    pub breakpoints: Vec<String>,
+    pub is_a_step: bool
 }
 
 impl Environment {
-    pub fn new(is_in_repl: bool, path: String, module_reader: fn(String) -> String, exit_handler: fn() -> !) -> Self {
+    pub fn new(is_in_repl: bool, path: String, module_reader: fn(String) -> String, exit_handler: fn() -> !, is_debugging: bool, breakpoints: Vec<String>) -> Self {
         Self {
             scope: 0,
             values: HashMap::new(),
@@ -33,7 +37,11 @@ impl Environment {
             is_in_repl,
             module_reader,
             exit_handler,
-            current_interpreting_location: Location::empty()
+            current_interpreting_location: Location::empty(),
+            current_interpreting_expression: Expression::VALUE(Value::NULL),
+            is_debugging,
+            breakpoints,
+            is_a_step: false
         }
     }
 
@@ -43,11 +51,16 @@ impl Environment {
         if self.is_in_repl {
             panic!("");
         } else {
+            if self.is_debugging {
+                let mut editable = self.clone();
+                debugger::debug(&mut editable, &String::from("ERROR"));
+            }
+
             (self.exit_handler)()
         }
     }
 
-    pub fn new_with_code(code: Expression, is_in_repl: bool, module_reader: fn(String) -> String, exit_handler: fn() -> !) -> Self {
+    pub fn new_with_code(code: Expression, is_in_repl: bool, module_reader: fn(String) -> String, exit_handler: fn() -> !, is_debugging: bool, breakpoints: Vec<String>) -> Self {
         Self {
             scope: 0,
             values: HashMap::new(),
@@ -56,7 +69,11 @@ impl Environment {
             is_in_repl,
             module_reader,
             exit_handler,
-            current_interpreting_location: Location::empty()
+            current_interpreting_location: Location::empty(),
+            current_interpreting_expression: Expression::VALUE(Value::NULL),
+            is_debugging,
+            breakpoints,
+            is_a_step: false
         }
     }
     pub fn begin_scope(&mut self) {
@@ -217,6 +234,10 @@ impl Environment {
     }
 
     pub fn call_function(&mut self, name: &String, arguments: Vec<Value>) -> Value {
+        if (self.breakpoints.contains(name) || self.is_a_step) && self.is_debugging {
+            debugger::debug(self, name);
+        }
+
         if name.contains("::") {
             let path = name.split_once("::").unwrap();
 
@@ -254,6 +275,7 @@ impl Environment {
                 "==" | "!=" | "<=" | ">=" | "<" | ">" => self.call_comparison(name, arguments),
                 "??" => self.call_null_coalescing(arguments),
                 "append" => self.call_append(arguments),
+                "brpoint" => self.call_brpoint(arguments),
                 "%" => self.call_modulo(arguments),
                 "is" => self.call_is(arguments),
                 "print" => self.call_print(arguments),
