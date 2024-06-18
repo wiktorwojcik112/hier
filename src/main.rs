@@ -45,7 +45,7 @@ fn add_defaults(hier: &mut Hier) {
 
     hier.add_function("time".to_string(), 0, time_function);
     hier.add_function("rand".to_string(), 2, rand_function);
-    hier.add_function("cmd".to_string(), 1, cmd_function);
+    hier.add_function("cmd".to_string(), -1, cmd_function);
     hier.add_function("write".to_string(), 2, write_function);
     hier.add_function("file".to_string(), 1, file_function);
 }
