@@ -46,7 +46,8 @@ The language is mainly functional (no classes<sup>1</sup>) and everything in it 
 
 Almost all of Hier is value-based. That means that operation creates a copy of a value. For example, by using insert, remove or replace functions on an array, you don't change the original array, but create a new array with specified changes.
 
-1. Altough natively there are no classes, you can use 
+1. Altough natively there are no classes, you can use files like classes. When a file is imported its environment is completely separate. It has its own variables and functions. It can be passed to functions by value. Therefore, you can treat files like classes and then import them when you need to create one. You can use ```load``` instead of ```import```. It is exactly the same, but it will make it more obvious that you are using a file as a class.
+
 # Importing
 In Hier you can import files using import function which accepts a string with a path to a hier file (./ at the beginning is automatically prepended and .hier is added at the end). It returns a special object which you can assign to a variable and use it by prepending an identifier with this variables name and :: (object::identifier). Here is an example showing how importing of an example library (library.hier) and another one in a folder (./math/constants.hier).
 
@@ -69,6 +70,8 @@ In Hier you can import files using import function which accepts a string with a
 (print "Pi is equal " constants::pi)
 (print "Golden ratio is equal " constants::golden_ratio)
 ```
+
+When a function begins with _ sign in a imported file, then it's inaccessible in the importing file.
 
 # Debugger
 Hier has a builtin debugger. To debug a file, run it using ```hier debug <file>```. To learn about the commands, type h or help.

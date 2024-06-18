@@ -269,7 +269,7 @@ impl Environment {
         } else {
             match &name as &str {
                 "get" => self.call_get(arguments),
-                "import" => self.call_import(arguments),
+                "import" | "load" => self.call_import(arguments),
                 "&" | "list" => self.call_list(arguments),
                 "+" => self.call_addition(arguments),
                 "-" => self.call_subtraction(arguments),
