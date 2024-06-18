@@ -75,7 +75,7 @@ pub(crate) fn debug(environment: &mut Environment, break_function: &String) {
             "lib" | "libreak" => {
                 let mut i = 0;
                 for br in environment.breakpoints.clone() {
-                    println!("- {}:{}", i, br);
+                    println!("{} - {}", i, br);
                     i += 1;
                 }
             },
