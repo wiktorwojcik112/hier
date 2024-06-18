@@ -15,6 +15,7 @@ pub(crate) fn debug(environment: &mut Environment, break_function: &String) {
 
     if environment.is_a_step {
         environment.is_a_step = false;
+        environment.should_step_into = false;
     }
 
     loop {
@@ -119,7 +120,7 @@ fn print_help() {
     println!("rb/rbreak <function identifier>/<breakpoint id> - remove breakpoint by function identifier or index, if it exists.");
     println!("lib/libreak - print breakpoints");
     println!("c/continue - continue execution until the end of the program or next breakpoint.");
-    println!("s/step - continue to next function.");
+    println!("s/step - continue to next function. Doesn't enter imported functions.");
     println!("e/expression - print current expression (inaccurate).");
     println!("p/print <variable identifier> - print value of the variable.");
     println!("l/location - print current location.");

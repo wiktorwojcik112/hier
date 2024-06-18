@@ -24,7 +24,8 @@ pub struct Environment {
     pub current_interpreting_expression: Expression,
     pub is_debugging: bool,
     pub breakpoints: Vec<String>,
-    pub is_a_step: bool
+    pub is_a_step: bool,
+    pub should_step_into: bool
 }
 
 impl Environment {
@@ -41,7 +42,8 @@ impl Environment {
             current_interpreting_expression: Expression::VALUE(Value::NULL),
             is_debugging,
             breakpoints,
-            is_a_step: false
+            is_a_step: false,
+            should_step_into: false
         }
     }
 
@@ -73,7 +75,8 @@ impl Environment {
             current_interpreting_expression: Expression::VALUE(Value::NULL),
             is_debugging,
             breakpoints,
-            is_a_step: false
+            is_a_step: false,
+            should_step_into: false
         }
     }
     pub fn begin_scope(&mut self) {
@@ -249,6 +252,8 @@ impl Environment {
 
             if let Value::ENVIRONMENT(target_environment) = environment {
                 let mut environment = target_environment.clone();
+
+                environment.is_a_step = environment.should_step_into;
 
                 let result = environment.call_function(&path.1.to_string(), arguments);
 
