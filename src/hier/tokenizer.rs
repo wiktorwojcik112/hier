@@ -72,7 +72,7 @@ impl Tokenizer {
                 self.current_line += 1;
                 self.current_offset = 0;
                 continue;
-            } else if current_char == ' ' || current_char == '\t' {
+            } else if current_char == ' ' || current_char == ',' || current_char == '\t' {
                 self.consume();
             } else if current_char == '.' {
                 self.tokens.push(Token::DOT(self.make_location()));
@@ -170,7 +170,7 @@ impl Tokenizer {
                 self.current_line += 1;
                 self.current_offset = 0;
                 continue;
-            } else if current_char == ' ' || current_char == '\t' {
+            } else if current_char == ' ' || current_char == ',' || current_char == '\t' {
                 self.consume();
             } else if current_char == '.' {
                 self.tokens.push(Token::DOT(self.make_location()));
@@ -266,7 +266,7 @@ impl Tokenizer {
 
         let mut is_first_colon = true;
 
-        while self.current_index < self.code.len() && self.peek() != ' ' && self.peek() != '(' && self.peek() != ')' && self.peek() != '.' && self.peek() != '\n' && self.peek() != ']' && self.peek() != '[' {
+        while self.current_index < self.code.len() && self.peek() != ' ' && self.peek() != ',' && self.peek() != '(' && self.peek() != ')' && self.peek() != '.' && self.peek() != '\n' && self.peek() != ']' && self.peek() != '[' {
             if self.peek() == ':' && self.peek_next() != ':' && is_first_colon {
                 break;
             } else if self.peek() == ':' {
@@ -291,7 +291,7 @@ impl Tokenizer {
         let mut is_first_character = true;
 
 
-        while self.current_index < self.code.len() && self.peek() != ')' && self.peek() != '(' && self.peek() != ' ' && self.peek() != '\n' && self.peek() != ']' {
+        while self.current_index < self.code.len() && self.peek() != ')' && self.peek() != ',' && self.peek() != '(' && self.peek() != ' ' && self.peek() != '\n' && self.peek() != ']' {
             if had_error {
                 continue;
             }
