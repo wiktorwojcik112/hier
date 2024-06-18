@@ -29,7 +29,7 @@ To run a file, enter:
 ```
 
 # Design
-Hier has a syntax similar to Lisp. At the core of Hier, there are 6 constructs: lists (using ( and ) ), blocks (using { and }), numbers (number with optional ., for example: 1.0, 2.5, -1.5, 5, -3), strings (using " and ", they can contain all characters and have interpolation) and they can be multiline (new lines are included in string)), identifiers (any characters, except it can't begin with " and must not contain spaces, :, (, ), ., new lines, [ and ]) and directives (which begin with #).
+Hier has a syntax similar to Lisp. At the core of Hier, there are 6 constructs: lists (using ( and ) ), blocks (using { and }), numbers (number with optional ., for example: 1.0, 2.5, -1.5, 5, -3), strings (using " and ", they can contain all characters and have interpolation<sup>1</sup>) and they can be multiline (new lines are included in string)), identifiers (any characters, except it can't begin with " and must not contain spaces, :, (, ), ., new lines, [ and ]) and directives (which begin with #).
 
 Everything else builds off of these blocks and converts into a core construct.. 
 - properties ```(a.func 1)``` -> ```(func a 1)```,
@@ -38,7 +38,7 @@ Everything else builds off of these blocks and converts into a core construct..
 - chain ```(1 2 3) > (map { (+ element 1) })``` ->  ```(map (1 2 3) { (+ element 1) })```.
 - before-list ```*(+(1 2) +(3 4))``` -> ```(* (+ 1 2) (+ 3 4))```
 
-The language is mainly functional (no classes<sup>1</sup>) and everything in it (except directives) is some kind of an expression. Here is an example of a program which adds numbers 1 2 3 and result of subtracting 2 from 1 and prints it:
+The language is mainly functional (no classes<sup>2</sup>) and everything in it (except directives) is some kind of an expression. Here is an example of a program which adds numbers 1 2 3 and result of subtracting 2 from 1 and prints it:
 
 ```
 (print (+ 1 2 3 (- 1 2)))
@@ -47,7 +47,11 @@ The language is mainly functional (no classes<sup>1</sup>) and everything in it 
 Almost all of Hier is value-based. That means that operation creates a copy of a value. For example, by using insert, remove or replace functions on an array, you don't change the original array, but create a new array with specified changes.
 
 1. Altough natively there are no classes, you can use files like classes. When a file is imported its environment is completely separate. It has its own variables and functions. It can be passed to functions by value. Therefore, you can treat files like classes and then import them when you need to create one. You can use ```load``` instead of ```import```. It is exactly the same, but it will make it more obvious that you are using a file as a class.
-
+2. All strings are interpolated. You can use it by placing a list after \\. To use a variable, you need to use get function, which returns either the value of the variable or just a value. Here is an example, which prints "Hello, World!":
+```
+(@a "World!")
+(println "Hello, \(get a)")
+```
 # Importing
 In Hier you can import files using import function which accepts a string with a path to a hier file (./ at the beginning is automatically prepended and .hier is added at the end). It returns a special object which you can assign to a variable and use it by prepending an identifier with this variables name and :: (object::identifier). Here is an example showing how importing of an example library (library.hier) and another one in a folder (./math/constants.hier).
 
