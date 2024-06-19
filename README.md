@@ -4,6 +4,9 @@ Hier is my second attempt at making a programming language (previous was GoldByt
 # Reason
 Hier is a toy programming language created by me to learn more about their development. It is not meant to be efficient, but it is meant to be a experimented on. My final goal would be to make it complete by implementing things like debugger, package manager and writing some libraries like immediate or declarative GUI and HTTP server.
 
+# Standard library
+There is a [standard library](https://github.com/wiktorwojcik112/stdlib) that adds useful functions which are not available by default.
+
 # Usage
 Hier is written in Rust, so you will need to install its toolchain, if you don't have it. Go to www.rust-lang.org/learn/get-started for help.
 Clone this repo to your machine:
@@ -137,7 +140,18 @@ The piping syntax is converted into the first example, so it has the same effect
 If you put an identifier right before a list, it will be interpreted as if it was it's first element. That means that ```*(+(1 2) +(3 4))``` becomes ```(* (+ 1 2) (+ 3 4))```. This works with every identifier, except !. At this moment properties are not supported.
 
 # Functions
-Functions are declared using (@function_name (| first_argument second_argument) { (print first_argument) }) syntax. Function | returns function arguments - a special value that just contains identifiers that are passed as arguments. The block is the code that will get executed when function is called. You call such function using normal syntax: (function_name 1 2). Hier checks arity (number of arguments) of functions and errors when it doesn't match.
+Functions are declared using ```(@function_name (| first_argument second_argument etc) { (print first_argument) })``` syntax. Function | returns function parameters - a special value that contains identifiers that are passed as parameters. The block is the code that will get executed when function is called. You call such function using normal syntax: ```(function_name 1 2)```. Hier checks number of arguments of functions and errors when it doesn't match. 
+
+If the last parameter's name starts with &, then all the excessive values are turned into a list and passed as this parameter.
+
+```
+(@greet (| greeting &names) { (print greeting) (for names { (print ", " element) }) })
+(greet "Hello") \* Error, because the function expects at least 2 arguments *\
+(greet "Hello" "World!") \* Prints: Hello, World!
+(greet "Hello" "World" "Earth") \* Prints: Hello, World, Earth
+```
+
+This works only if the last parameter begins with &. There can be only one such parameter.
 
 # Control flow
 Hier has 6 control flow functions - try, run, if, while, repeat, break and for.
@@ -145,7 +159,7 @@ Hier has 6 control flow functions - try, run, if, while, repeat, break and for.
 ## Run
 (run expression...)
 Run evaluates all (run accepts any number of arguments) of its arguments (including execution of passed blocks) and returns value of the last expression, so this code would return 2:
-(run { (print "test") } 2)
+```(run { (print "test") } 2)```
 
 ## If
 (if condition block block?)

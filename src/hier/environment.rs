@@ -205,15 +205,54 @@ impl Environment {
 
     fn call_user_defined_function(&mut self, name: &String, arguments: Vec<Value>) -> Value {
         if let Value::FUNCTION(parameters, block) = self.get(name.clone().to_string()) {
-            if arguments.len() != parameters.len() {
+            let does_catchall_exist = parameters.len() != 0
+                && parameters.last().unwrap().len() > 1
+                && parameters.last().unwrap().chars().nth(0).unwrap() == '&';
+
+            if does_catchall_exist && arguments.len() < parameters.len() {
+                self.error(&format!("Function {} expects at least {} arguments, but {} were provided.", name, parameters.len(), arguments.len()));
+            } else if !does_catchall_exist && arguments.len() != parameters.len() {
                 self.error(&format!("Function {} expects {} arguments, but {} were provided.", name, parameters.len(), arguments.len()));
+            }
+
+            let mut catchall_name = String::new();
+
+            if does_catchall_exist {
+                let mut last = parameters.last().unwrap().clone();
+                last.remove(0);
+                catchall_name = last.clone();
+            }
+
+            let mut parameters = parameters;
+            if does_catchall_exist {
+                parameters.remove(parameters.len() - 1);
             }
 
             {
                 self.begin_scope();
 
                 for (i, argument) in arguments.iter().enumerate() {
+                    if i >= parameters.len() {
+                        break;
+                    }
+
+                    if i == parameters.len() && parameters[i].chars().nth(0).unwrap() == '&' {
+                        break;
+                    }
+
                     self.declare(parameters[i].clone(), argument.clone());
+                }
+
+                if does_catchall_exist {
+                    let mut catchall_list: Vec<Value> = vec![];
+
+                    let mut i = parameters.len();
+                    while i < arguments.len() {
+                        catchall_list.push(arguments[i].clone());
+                        i += 1;
+                    }
+
+                    self.declare(catchall_name, Value::LIST(catchall_list));
                 }
 
                 if let Value::BLOCK(block) = (*block).clone() {
@@ -221,6 +260,8 @@ impl Environment {
                     self.end_scope();
                     value
                 } else {
+                    warning(&format!("Function {} doesn't have a block.", name));
+                    self.end_scope();
                     Value::NULL
                 }
             }
