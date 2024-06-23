@@ -88,6 +88,8 @@ You can set breakpoints from the debugger console and from code using ```(brpoin
 # Lists
 Lists are fundamental element of Hier. They are made of expressions between ( and ). The list may be a function call depending on circumstances. If first expression is an identifier, it will work like a function call, for example (print 1 2 3). If first expression is a property it will work like a syntactic sugar for function call on object, for example, it will convert (array.insert 1) to (insert array 1), allowing clearer syntax. If first expression evaluates to function arguments (for example: (| a b c)), list will evaluate to an anonymous function. Otherwise, it will generate an array (in Hier, arrays are collective name for lists and arrays). Lists (arrays) can also be created using (& value1 value2) function call or (list value1 value2) function call.
 
+You can use negative indexes to access values from the end. -1 is the last element, -2 is the element before it and so on.
+
 An example:
 ```
 (print 1)

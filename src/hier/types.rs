@@ -1,5 +1,5 @@
 #[allow(non_camel_case_types)]
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug, Hash)]
 pub enum Type {
     LIST,
     STRING,
@@ -31,7 +31,7 @@ impl Type {
             Type::KEY_VALUE => "KeyValue".to_string(),
             Type::TABLE => "Table".to_string(),
             Type::ERROR => "Error".to_string(),
-            Type::ENVIRONMENT => "Environment".to_string()
+            Type::ENVIRONMENT => "Environment".to_string(),
         }
     }
 

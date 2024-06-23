@@ -968,11 +968,16 @@ impl Environment {
         } else if let Value::NUMBER(index) = arguments[1] {
             match arguments[0].clone() {
                 Value::LIST(value) => {
-                    if index < 0f64 || value.len() <= index as usize {
+                    if index >= 0f64 && value.len() <= index as usize || index < 0f64 && value.len() < abs(index) as usize {
                         self.error(&format!("Index {} is out of bounds ({} elements).", index, value.len()));
                     }
 
-                    value[index as usize].clone()
+                    if index >= 0f64 {
+                        value[index as usize].clone()
+                    } else {
+
+                        value[value.len() - (abs(index) as usize)].clone()
+                    }
                 },
                 Value::STRING(value) => {
                     if index < 0f64 || value.len() <= index as usize {
@@ -985,5 +990,13 @@ impl Environment {
         } else {
             self.error("Get operation requires second arguments to be a number or string.");
         }
+    }
+}
+
+fn abs(n: f64) -> f64 {
+    if n < 0f64 {
+        n * -1f64
+    } else {
+        n
     }
 }

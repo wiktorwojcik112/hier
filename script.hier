@@ -1,2 +1,9 @@
 (@game (import "./examples/tic_tac_toe"))
 (game::play)
+
+// Tic Tac Toe
+
+/*
+What else to say, just run and enter numbers like shown on the grid.
+This comment is absolutely not an excuse to show comments.
+*/

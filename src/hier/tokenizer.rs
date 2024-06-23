@@ -58,10 +58,14 @@ impl Tokenizer {
 
             if self.peek() == '#' && self.peek_next() != ' ' {
                 self.process();
-            } else if current_char == '\\' && self.peek_next() == '*' {
+            } else if current_char == '/' && self.peek_next() == '*' {
                 self.consume();
                 self.consume();
                 self.comment();
+            } else if current_char == '/' && self.peek_next() == '/' {
+                self.consume();
+                self.consume();
+                self.line_comment();
             } else if current_char == '\n' {
                 self.consume();
 
@@ -156,10 +160,13 @@ impl Tokenizer {
 
             if self.peek() == '#' && self.peek_next() != ' ' {
                 self.process();
-            } else if current_char == '\\' && self.peek_next() == '*' {
+            } else if current_char == '/' && self.peek_next() == '*' {
                 self.consume();
                 self.consume();
                 self.comment();
+            } else if current_char == '/' && self.peek_next() == '/' {
+                self.consume();
+                self.line_comment();
             } else if current_char == '\n' {
                 self.consume();
 
@@ -253,11 +260,19 @@ impl Tokenizer {
     }
 
     fn comment(&mut self) {
-        while self.current_index < self.code.len() && !(self.peek() == '*' && self.peek_next() == '\\') {
+        while self.current_index < self.code.len() && !(self.peek() == '*' && self.peek_next() == '/') {
             self.consume();
         }
 
         self.consume();
+        self.consume();
+    }
+
+    fn line_comment(&mut self) {
+        while self.current_index < self.code.len() && self.peek() != '\n' {
+            self.consume();
+        }
+
         self.consume();
     }
 

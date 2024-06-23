@@ -3,6 +3,7 @@ use crate::hier::expression::Expression;
 use crate::hier::interpreter::warning;
 use crate::hier::location::Location;
 use crate::hier::{debugger, report};
+use crate::hier::types::Type;
 use crate::hier::value::Value;
 
 
