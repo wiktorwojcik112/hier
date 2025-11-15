@@ -1,4 +1,4 @@
-(@game (import "./examples/tic_tac_toe"))
+(@game (import "tic_tac_toe"))
 (game::play)
 
 // Tic Tac Toe

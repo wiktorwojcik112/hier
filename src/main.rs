@@ -20,8 +20,8 @@ fn print_usage() {
     eprintln!("Usage: hier <command>");
     eprintln!("Commands:");
     eprintln!(" repl - Runs REPL. Can be omitted by running without arguments.");
-    eprintln!(" file - Runs contents of file. Can be omitted by running with only path.");
-    eprintln!(" run  - Runs a string.");
+    eprintln!(" file <path> - Runs contents of file. Can be omitted by running with only path.");
+    eprintln!(" run <a string of code>  - Runs a string.");
 }
 
 fn module_reader(path: String) -> String {
@@ -58,13 +58,8 @@ fn main() {
         add_defaults(&mut hier);
         repl();
     } else if args.len() == 2 {
-        let path = args[1].clone();
-        let contents = fs::read_to_string(path.clone())
-            .expect("Unable to read the file.");
-        let full_path = fs::canonicalize(PathBuf::from(path)).expect("Unable to resolve file.").to_str().unwrap().to_string();
-        let mut hier = Hier::new(full_path, module_reader, exit_handler, false);
-        add_defaults(&mut hier);
-        hier.run(contents);
+        print_usage();
+        exit(1); 
     } else if args.len() == 3 {
         match &args[1] as &str {
             "file" => {
